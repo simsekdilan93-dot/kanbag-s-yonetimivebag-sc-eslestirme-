@@ -39,8 +39,8 @@ Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagram
 Gereksinim: [.NET 10 SDK](https://dotnet.microsoft.com/download)
 
 ```bash
-git clone https://github.com/simsekdilan93-dot/kan-bagis-yonetimi.git
-cd kan-bagis-yonetimi
+git clone https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-.git
+cd kanbag-s-yonetimivebag-sc-eslestirme-
 dotnet run --project src/KanBagis.Web
 ```
 
