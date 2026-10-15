@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KanBagis.Business/KanBagis.Business.csproj" />
+    <Project Path="src/KanBagis.DataAccess/KanBagis.DataAccess.csproj" />
+    <Project Path="src/KanBagis.Entities/KanBagis.Entities.csproj" />
+    <Project Path="src/KanBagis.Web/KanBagis.Web.csproj" />
+  </Folder>
+</Solution>
