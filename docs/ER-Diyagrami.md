@@ -5,44 +5,60 @@ erDiagram
     KAN_GRUBU ||--o{ BAGISCI : "sahiptir"
     KAN_GRUBU ||--|| KAN_STOK : "stoğu tutulur"
     KAN_GRUBU ||--o{ KAN_TALEBI : "talep edilir"
+    HASTANE ||--o{ KAN_TALEBI : "açar"
+    HASTANE ||--o{ BAGIS : "kabul eder"
+    BAGISCI ||--o{ BAGIS : "yapar"
     BAGISCI ||--o{ BILDIRIM : "alır"
     KAN_TALEBI ||--o{ BILDIRIM : "gönderilir"
 
     KAN_GRUBU {
         int Id PK
-        string Ad "A Rh+, 0 Rh- ... (benzersiz)"
+        string Ad UK "A Rh+, 0 Rh- ..."
     }
 
     BAGISCI {
         int Id PK
-        string TcKimlikNo "benzersiz"
+        string TcKimlikNo UK "11 hane (CHECK)"
         string Ad
         string Soyad
         string Telefon
-        string Eposta
+        string Eposta "boş olabilir"
         date DogumTarihi
         string Cinsiyet
         string Sehir
-        date SonBagisTarihi "boş olabilir"
         int KanGrubuId FK
+    }
+
+    HASTANE {
+        int Id PK
+        string Ad
+        string Sehir
+        string Telefon
     }
 
     KAN_STOK {
         int Id PK
-        int KanGrubuId FK "benzersiz (1-1)"
-        int UniteSayisi
+        int KanGrubuId FK,UK "1-1"
+        int UniteSayisi ">= 0 (CHECK)"
         datetime GuncellemeTarihi
     }
 
     KAN_TALEBI {
         int Id PK
+        int HastaneId FK
         int KanGrubuId FK
-        string HastaneAdi
-        string Sehir
-        int UniteSayisi
+        int UniteSayisi "> 0 (CHECK)"
         string Aciliyet "Normal / Acil"
-        string Durum "Açık / Karşılandı / İptal"
+        string Durum "Acik / Karsilandi / Iptal"
         datetime OlusturmaTarihi
+    }
+
+    BAGIS {
+        int Id PK
+        int BagisciId FK
+        int HastaneId FK
+        datetime BagisTarihi
+        int UniteSayisi "> 0 (CHECK)"
     }
 
     BILDIRIM {
@@ -56,29 +72,43 @@ erDiagram
     }
 ```
 
+> **PK** birincil anahtar · **FK** yabancı anahtar · **UK** benzersiz (unique)
+
 ## Varlıklar
 
 | Varlık | Açıklama |
 |---|---|
-| **KanGrubu** | 8 kan grubunun tutulduğu sabit tablo (A Rh+, A Rh-, B Rh+, B Rh-, AB Rh+, AB Rh-, 0 Rh+, 0 Rh-). |
+| **KanGrubu** | 8 kan grubunun tutulduğu sabit tablo. |
 | **Bagisci** | Sisteme kayıtlı gönüllü bağışçı. |
+| **Hastane** | Kan talebi açan ve bağış kabul eden kurum. |
 | **KanStok** | Her kan grubu için eldeki ünite sayısı. |
 | **KanTalebi** | Hastanenin belirli bir kan grubu için açtığı talep. |
-| **Bildirim** | Bir talebin uygun bağışçıya iletilmesi ve bağışçının yanıtı. |
+| **Bagis** | Bağışçının yaptığı her bağışın kaydı (bağış geçmişi). |
+| **Bildirim** | Talebin uygun bağışçıya iletilmesi ve bağışçının yanıtı. |
 
 ## İlişkiler
 
-| İlişki | Tür | Açıklama |
-|---|---|---|
-| KanGrubu – KanStok | **1-1** | Her kan grubunun tek bir stok kaydı vardır (`KanStok.KanGrubuId` benzersiz). |
-| KanGrubu – Bagisci | **1-N** | Bir kan grubunda çok bağışçı olabilir, her bağışçının tek bir kan grubu vardır. |
-| KanGrubu – KanTalebi | **1-N** | Bir kan grubu için çok talep açılabilir. |
-| Bagisci – KanTalebi | **N-N** | Bir talep çok bağışçıya, bir bağışçıya çok talep bildirilebilir. Bu ilişki **Bildirim** ara tablosuyla çözülür. |
+| İlişki | Tür | Silme davranışı | Açıklama |
+|---|---|---|---|
+| KanGrubu – KanStok | **1-1** | Restrict | `KanStok.KanGrubuId` benzersiz olduğu için her kan grubunun tek bir stok kaydı vardır. |
+| KanGrubu – Bagisci | **1-N** | Restrict | Bağışçısı olan kan grubu silinemez. |
+| KanGrubu – KanTalebi | **1-N** | Restrict | |
+| Hastane – KanTalebi | **1-N** | Restrict | |
+| Hastane – Bagis | **1-N** | Restrict | |
+| Bagisci – Bagis | **1-N** | Restrict | Bağış geçmişi kayıt niteliğindedir, silinmez. |
+| Bagisci – KanTalebi | **N-N** | Cascade | **Bildirim** ara tablosuyla çözülür. `(BagisciId, KanTalebiId)` benzersizdir. |
+
+## Hafta 4'te yapılan model düzeltmeleri
+
+| Değişiklik | Neden |
+|---|---|
+| `Hastane` tablosu eklendi; `KanTalebi`'nden `HastaneAdi` ve `Sehir` çıkarıldı | **3NF ihlali vardı:** Şehir bilgisi talebe değil hastaneye bağlıydı (geçişli bağımlılık), aynı hastane bilgisi her talepte tekrar ediyordu. |
+| `Bagis` tablosu eklendi; `Bagisci.SonBagisTarihi` kaldırıldı | Son bağış tarihi bağış kayıtlarından hesaplanabilir. Ayrıca saklamak **gereksiz tekrar (denormalizasyon)** olur ve iki değer zamanla tutarsızlaşabilir. Bağış geçmişi de kayda geçmiş olur. |
 
 ## Anahtarlar ve normalizasyon
 
-- Her tablonun kendi **birincil anahtarı (PK)** `Id` vardır. TC kimlik no gibi doğal anahtarlar değişebilir ya da gizli kalması gerekebilir, bu yüzden tanımlayıcı olarak kullanılmaz. Bunun yerine **benzersiz (unique)** kısıtla korunur.
-- İlişkiler **yabancı anahtarlarla (FK)** kurulur: `KanGrubuId`, `BagisciId`, `KanTalebiId`.
-- **1NF:** Her alan tek bir değer tutar. Örneğin bir bağışçının birden fazla telefonu ayrı sütunlara bölünmez.
+- Her tablonun **birincil anahtarı (PK)** `Id`'dir. TC kimlik no gibi doğal anahtarlar PK yapılmaz, **benzersiz (unique)** kısıtla korunur. Böyle anahtarlar değişebilir ve gizli kalması gereken bilgi içerir.
+- İlişkiler **yabancı anahtarlarla (FK)** kurulur. Yabancı anahtar, olmayan bir kayda bağlantı yapılmasını engeller (**referans bütünlüğü**).
+- **1NF:** Her alan tek bir değer tutar.
 - **2NF:** Tekli PK kullanıldığı için kısmi bağımlılık oluşmaz.
-- **3NF:** Kan grubu adı bağışçı, stok ve talep tablolarında tekrar edilmez, yalnızca `KanGrubuId` tutulur. Kan grubu adı değişirse tek bir yerden güncellenir.
+- **3NF:** Anahtar olmayan alanlar başka bir anahtar olmayan alana bağlı değildir. Kan grubu ve hastane bilgisi ayrı tablolarda tutulur, diğer tablolarda yalnızca Id'leri bulunur.

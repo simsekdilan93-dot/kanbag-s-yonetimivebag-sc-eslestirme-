@@ -1,9 +1,19 @@
+using KanBagis.Business;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// {ContentRoot} yer tutucusu, veritabanı dosyasının her zaman Web projesinin klasöründe oluşmasını sağlar.
+var connectionString = builder.Configuration.GetConnectionString("KanBagis")!
+    .Replace("{ContentRoot}", builder.Environment.ContentRootPath);
+builder.Services.AddBusiness(connectionString);
+
 var app = builder.Build();
+
+// Uygulama açılırken bekleyen migration'lar uygulanır; veritabanı yoksa oluşturulur.
+await DependencyInjection.VeritabaniniHazirlaAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
