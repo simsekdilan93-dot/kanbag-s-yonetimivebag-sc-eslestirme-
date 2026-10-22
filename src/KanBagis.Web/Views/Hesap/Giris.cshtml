@@ -1,0 +1,38 @@
+@model GirisViewModel
+@{
+    ViewData["Title"] = "Giriş";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <h1 class="h3 mb-4">Giriş yap</h1>
+
+        <form asp-action="Giris" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <input asp-for="ReturnUrl" type="hidden" />
+
+            <div class="mb-3">
+                <label asp-for="Eposta" class="form-label"></label>
+                <input asp-for="Eposta" class="form-control" autocomplete="username" autofocus />
+                <span asp-validation-for="Eposta" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Parola" class="form-label"></label>
+                <input asp-for="Parola" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Parola" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100">Giriş yap</button>
+        </form>
+
+        <p class="mt-4 text-muted small">
+            Hesabın yok mu?
+            <a asp-action="KayitBagisci">Bağışçı olarak kayıt ol</a> ·
+            <a asp-action="KayitKurum">Kurum olarak kayıt ol</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

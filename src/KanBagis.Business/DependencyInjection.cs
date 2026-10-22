@@ -1,5 +1,10 @@
+using KanBagis.Business.Guvenlik;
+using KanBagis.Business.Kimlik;
+using KanBagis.Business.Paneller;
+using KanBagis.Business.Tanimlar;
 using KanBagis.DataAccess;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace KanBagis.Business;
 
@@ -12,7 +17,13 @@ public static class DependencyInjection
     public static IServiceCollection AddBusiness(this IServiceCollection services, string connectionString)
     {
         services.AddDataAccess(connectionString);
-        // İş servisleri (BagisciService vb.) sonraki haftalarda buraya eklenecek.
+
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher());
+        services.AddScoped<IKimlikService, KimlikService>();
+        services.AddScoped<IPanelService, PanelService>();
+        services.AddScoped<ITanimService, TanimService>();
+
         return services;
     }
 

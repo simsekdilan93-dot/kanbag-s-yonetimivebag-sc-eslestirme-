@@ -1,0 +1,61 @@
+@model KurumKayitViewModel
+@{
+    ViewData["Title"] = "Kurum kaydı";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-1">Kurum (hastane) olarak kayıt ol</h1>
+        <p class="text-muted mb-4">Kurum hesabıyla kan talebi oluşturabilir ve stok durumunu görebilirsiniz.</p>
+
+        <form asp-action="KayitKurum" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <h2 class="h6 text-uppercase text-muted mt-2">Hesap bilgileri</h2>
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <label asp-for="Eposta" class="form-label"></label>
+                    <input asp-for="Eposta" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Eposta" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Parola" class="form-label"></label>
+                    <input asp-for="Parola" class="form-control" autocomplete="new-password" />
+                    <div class="form-text">En az 8 karakter, en az bir harf ve bir rakam.</div>
+                    <span asp-validation-for="Parola" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ParolaTekrar" class="form-label"></label>
+                    <input asp-for="ParolaTekrar" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ParolaTekrar" class="text-danger"></span>
+                </div>
+            </div>
+
+            <h2 class="h6 text-uppercase text-muted">Hastane bilgileri</h2>
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <label asp-for="HastaneAdi" class="form-label"></label>
+                    <input asp-for="HastaneAdi" class="form-control" />
+                    <span asp-validation-for="HastaneAdi" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Sehir" class="form-label"></label>
+                    <input asp-for="Sehir" class="form-control" />
+                    <span asp-validation-for="Sehir" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Telefon" class="form-label"></label>
+                    <input asp-for="Telefon" class="form-control" inputmode="tel" placeholder="0xxxxxxxxxx" />
+                    <span asp-validation-for="Telefon" class="text-danger"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-danger">Kayıt ol</button>
+            <a asp-action="Giris" class="btn btn-link">Zaten hesabım var</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

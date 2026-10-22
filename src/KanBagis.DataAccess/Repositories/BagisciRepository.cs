@@ -8,6 +8,8 @@ public interface IBagisciRepository : IRepository<Bagisci>
     Task<Bagisci?> TcIleGetirAsync(string tcKimlikNo);
     Task<List<Bagisci>> UygunBagiscilariGetirAsync(int kanGrubuId, string sehir, DateTime sonBagisSiniri);
     Task<DateTime?> SonBagisTarihiAsync(int bagisciId);
+    Task<Bagisci?> KanGrubuylaGetirAsync(int id);
+    Task<List<Bildirim>> BildirimleriGetirAsync(int bagisciId);
 }
 
 public class BagisciRepository(KanBagisDbContext context) : EfRepository<Bagisci>(context), IBagisciRepository
@@ -32,4 +34,17 @@ public class BagisciRepository(KanBagisDbContext context) : EfRepository<Bagisci
         Context.Bagislar
                .Where(b => b.BagisciId == bagisciId)
                .MaxAsync(b => (DateTime?)b.BagisTarihi);
+
+    public Task<Bagisci?> KanGrubuylaGetirAsync(int id) =>
+        Tablo.AsNoTracking()
+             .Include(b => b.KanGrubu)
+             .FirstOrDefaultAsync(b => b.Id == id);
+
+    public Task<List<Bildirim>> BildirimleriGetirAsync(int bagisciId) =>
+        Context.Bildirimler.AsNoTracking()
+               .Include(b => b.KanTalebi).ThenInclude(t => t.Hastane)
+               .Include(b => b.KanTalebi).ThenInclude(t => t.KanGrubu)
+               .Where(b => b.BagisciId == bagisciId)
+               .OrderByDescending(b => b.GonderimTarihi)
+               .ToListAsync();
 }

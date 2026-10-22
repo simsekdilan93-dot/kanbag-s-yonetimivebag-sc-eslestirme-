@@ -283,3 +283,32 @@ VALUES ('20261016063707_IlkSema', '10.0.13');
 
 COMMIT;
 
+BEGIN TRANSACTION;
+CREATE TABLE "Kullanicilar" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Kullanicilar" PRIMARY KEY AUTOINCREMENT,
+    "Eposta" TEXT NOT NULL,
+    "ParolaHash" TEXT NOT NULL,
+    "Rol" TEXT NOT NULL,
+    "BasarisizGirisSayisi" INTEGER NOT NULL,
+    "KilitBitisTarihi" TEXT NULL,
+    "OlusturmaTarihi" TEXT NOT NULL,
+    "SonGirisTarihi" TEXT NULL,
+    "BagisciId" INTEGER NULL,
+    "HastaneId" INTEGER NULL,
+    CONSTRAINT "CK_Kullanici_BasarisizGiris" CHECK (BasarisizGirisSayisi >= 0),
+    CONSTRAINT "CK_Kullanici_Rol_Baglantisi" CHECK ((Rol = 'Bagisci' AND BagisciId IS NOT NULL AND HastaneId IS NULL) OR (Rol = 'Kurum' AND HastaneId IS NOT NULL AND BagisciId IS NULL)),
+    CONSTRAINT "FK_Kullanicilar_Bagiscilar_BagisciId" FOREIGN KEY ("BagisciId") REFERENCES "Bagiscilar" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_Kullanicilar_Hastaneler_HastaneId" FOREIGN KEY ("HastaneId") REFERENCES "Hastaneler" ("Id") ON DELETE RESTRICT
+);
+
+CREATE UNIQUE INDEX "IX_Kullanicilar_BagisciId" ON "Kullanicilar" ("BagisciId");
+
+CREATE UNIQUE INDEX "IX_Kullanicilar_Eposta" ON "Kullanicilar" ("Eposta");
+
+CREATE INDEX "IX_Kullanicilar_HastaneId" ON "Kullanicilar" ("HastaneId");
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261022172020_KullaniciVeRoller', '10.0.13');
+
+COMMIT;
+

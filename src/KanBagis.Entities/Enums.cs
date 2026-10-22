@@ -1,6 +1,12 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace KanBagis.Entities;
 
-public enum Cinsiyet { Kadin, Erkek }
+public enum Cinsiyet
+{
+    [Display(Name = "Kadın")] Kadin,
+    [Display(Name = "Erkek")] Erkek,
+}
 
 public enum Aciliyet { Normal, Acil }
 

@@ -1,0 +1,56 @@
+@model KurumPaneli
+@{
+    ViewData["Title"] = "Kurum paneli";
+}
+
+<h1 class="h3 mb-1">@Model.Hastane.Ad</h1>
+<p class="text-muted mb-4">@Model.Hastane.Sehir · @Model.Hastane.Telefon</p>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h2 class="h5">Kan talepleriniz</h2>
+        @if (Model.Talepler.Count == 0)
+        {
+            <p class="text-muted">Henüz kan talebi oluşturmadınız.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>Tarih</th><th>Kan grubu</th><th>Ünite</th><th>Aciliyet</th><th>Durum</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.Talepler)
+                        {
+                            <tr>
+                                <td>@t.OlusturmaTarihi.ToString("dd.MM.yyyy")</td>
+                                <td>@t.KanGrubu.Ad</td>
+                                <td>@t.UniteSayisi</td>
+                                <td>@(t.Aciliyet == Aciliyet.Acil ? "Acil" : "Normal")</td>
+                                <td>@t.Durum</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <h2 class="h5">Kan stoğu</h2>
+        <table class="table table-sm">
+            <thead><tr><th>Kan grubu</th><th class="text-end">Ünite</th></tr></thead>
+            <tbody>
+                @foreach (var s in Model.Stoklar)
+                {
+                    <tr class="@(s.UniteSayisi < 5 ? "table-warning" : "")">
+                        <td>@s.KanGrubu.Ad</td>
+                        <td class="text-end">@s.UniteSayisi</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <p class="small text-muted">Sarı satırlar: stok 5 ünitenin altında.</p>
+    </div>
+</div>

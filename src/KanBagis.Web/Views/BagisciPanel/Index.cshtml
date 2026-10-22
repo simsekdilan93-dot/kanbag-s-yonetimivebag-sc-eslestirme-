@@ -1,0 +1,71 @@
+@model BagisciPaneli
+@{
+    ViewData["Title"] = "Bağışçı paneli";
+    var b = Model.Bagisci;
+    var bugun = DateTime.UtcNow;
+    var uygun = Model.SonrakiUygunTarih is null || Model.SonrakiUygunTarih <= bugun;
+}
+
+<h1 class="h3 mb-4">Merhaba, @b.Ad</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Kan grubu</div>
+                <div class="fs-3 fw-semibold text-danger">@b.KanGrubu.Ad</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Son bağış</div>
+                <div class="fs-5">@(Model.SonBagisTarihi?.ToString("dd.MM.yyyy") ?? "Henüz bağış yok")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Bağış durumu</div>
+                @if (uygun)
+                {
+                    <div class="fs-5 text-success">Bağış yapabilirsiniz</div>
+                }
+                else
+                {
+                    <div class="fs-5">@Model.SonrakiUygunTarih!.Value.ToString("dd.MM.yyyy") tarihinden sonra</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<h2 class="h5">Bildirimler</h2>
+@if (Model.Bildirimler.Count == 0)
+{
+    <p class="text-muted">Henüz bildiriminiz yok. Kan grubunuza uygun bir talep açıldığında burada görünecek.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Tarih</th><th>Hastane</th><th>Kan grubu</th><th>Mesaj</th><th>Yanıt</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var bildirim in Model.Bildirimler)
+                {
+                    <tr>
+                        <td>@bildirim.GonderimTarihi.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@bildirim.KanTalebi.Hastane.Ad</td>
+                        <td>@bildirim.KanTalebi.KanGrubu.Ad</td>
+                        <td>@bildirim.Mesaj</td>
+                        <td>@bildirim.Yanit</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

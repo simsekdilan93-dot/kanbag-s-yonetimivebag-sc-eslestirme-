@@ -12,6 +12,7 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
     public DbSet<KanTalebi> KanTalepleri => Set<KanTalebi>();
     public DbSet<Bagis> Bagislar => Set<Bagis>();
     public DbSet<Bildirim> Bildirimler => Set<Bildirim>();
+    public DbSet<Kullanici> Kullanicilar => Set<Kullanici>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,5 +27,6 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
         configurationBuilder.Properties<Aciliyet>().HaveConversion<string>().HaveMaxLength(10);
         configurationBuilder.Properties<TalepDurumu>().HaveConversion<string>().HaveMaxLength(15);
         configurationBuilder.Properties<BildirimYaniti>().HaveConversion<string>().HaveMaxLength(15);
+        configurationBuilder.Properties<KullaniciRolu>().HaveConversion<string>().HaveMaxLength(10);
     }
 }

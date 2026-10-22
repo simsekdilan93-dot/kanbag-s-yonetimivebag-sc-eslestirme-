@@ -646,6 +646,63 @@ namespace KanBagis.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("KanBagis.Entities.Kullanici", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("BagisciId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("BasarisizGirisSayisi")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Eposta")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("HastaneId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("KilitBitisTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("OlusturmaTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ParolaHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SonGirisTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BagisciId")
+                        .IsUnique();
+
+                    b.HasIndex("Eposta")
+                        .IsUnique();
+
+                    b.HasIndex("HastaneId");
+
+                    b.ToTable("Kullanicilar", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Kullanici_BasarisizGiris", "BasarisizGirisSayisi >= 0");
+
+                            t.HasCheckConstraint("CK_Kullanici_Rol_Baglantisi", "(Rol = 'Bagisci' AND BagisciId IS NOT NULL AND HastaneId IS NULL) OR (Rol = 'Kurum' AND HastaneId IS NOT NULL AND BagisciId IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("KanBagis.Entities.Bagis", b =>
                 {
                     b.HasOne("KanBagis.Entities.Bagisci", "Bagisci")
@@ -723,6 +780,23 @@ namespace KanBagis.DataAccess.Migrations
                     b.Navigation("Hastane");
 
                     b.Navigation("KanGrubu");
+                });
+
+            modelBuilder.Entity("KanBagis.Entities.Kullanici", b =>
+                {
+                    b.HasOne("KanBagis.Entities.Bagisci", "Bagisci")
+                        .WithOne()
+                        .HasForeignKey("KanBagis.Entities.Kullanici", "BagisciId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("KanBagis.Entities.Hastane", "Hastane")
+                        .WithMany()
+                        .HasForeignKey("HastaneId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Bagisci");
+
+                    b.Navigation("Hastane");
                 });
 
             modelBuilder.Entity("KanBagis.Entities.Bagisci", b =>

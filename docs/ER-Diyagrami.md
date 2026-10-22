@@ -10,6 +10,8 @@ erDiagram
     BAGISCI ||--o{ BAGIS : "yapar"
     BAGISCI ||--o{ BILDIRIM : "alır"
     KAN_TALEBI ||--o{ BILDIRIM : "gönderilir"
+    BAGISCI |o--o| KULLANICI : "hesabı"
+    HASTANE ||--o{ KULLANICI : "personel hesabı"
 
     KAN_GRUBU {
         int Id PK
@@ -70,6 +72,19 @@ erDiagram
         bool Okundu
         string Yanit "Beklemede / Kabul / Red"
     }
+
+    KULLANICI {
+        int Id PK
+        string Eposta UK
+        string ParolaHash "PBKDF2 + tuz"
+        string Rol "Bagisci / Kurum"
+        int BasarisizGirisSayisi
+        datetime KilitBitisTarihi "boş olabilir"
+        datetime OlusturmaTarihi
+        datetime SonGirisTarihi "boş olabilir"
+        int BagisciId FK,UK "Rol=Bagisci ise dolu"
+        int HastaneId FK "Rol=Kurum ise dolu"
+    }
 ```
 
 > **PK** birincil anahtar · **FK** yabancı anahtar · **UK** benzersiz (unique)
@@ -85,6 +100,7 @@ erDiagram
 | **KanTalebi** | Hastanenin belirli bir kan grubu için açtığı talep. |
 | **Bagis** | Bağışçının yaptığı her bağışın kaydı (bağış geçmişi). |
 | **Bildirim** | Talebin uygun bağışçıya iletilmesi ve bağışçının yanıtı. |
+| **Kullanici** | Sisteme giriş yapan hesap (Hafta 5). Rolüne göre bir bağışçıya ya da hastaneye bağlıdır. |
 
 ## İlişkiler
 
@@ -96,6 +112,8 @@ erDiagram
 | Hastane – KanTalebi | **1-N** | Restrict | |
 | Hastane – Bagis | **1-N** | Restrict | |
 | Bagisci – Bagis | **1-N** | Restrict | Bağış geçmişi kayıt niteliğindedir, silinmez. |
+| Bagisci – Kullanici | **1-1** (isteğe bağlı) | Cascade | Her bağışçının en fazla bir hesabı olur (`BagisciId` benzersiz). Örnek veri bağışçılarının hesabı yoktur. |
+| Hastane – Kullanici | **1-N** | Restrict | Bir hastanenin birden çok personel hesabı olabilir. |
 | Bagisci – KanTalebi | **N-N** | Cascade | **Bildirim** ara tablosuyla çözülür. `(BagisciId, KanTalebiId)` benzersizdir. |
 
 ## Hafta 4'te yapılan model düzeltmeleri

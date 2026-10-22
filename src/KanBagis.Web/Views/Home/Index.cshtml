@@ -1,8 +1,26 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana sayfa";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="py-5 text-center">
+    <h1 class="display-5 fw-semibold">Kan Bağışı Yönetim Sistemi</h1>
+    <p class="lead text-muted col-lg-8 mx-auto">
+        Hastanelerin kan ihtiyacını, kan grubu uygun gönüllü bağışçılarla buluşturur.
+    </p>
+
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+            <a asp-controller="Hesap" asp-action="KayitBagisci" class="btn btn-danger btn-lg">Bağışçı ol</a>
+            <a asp-controller="Hesap" asp-action="KayitKurum" class="btn btn-outline-secondary btn-lg">Kurum kaydı</a>
+        </div>
+    }
+    else if (User.IsInRole(Roller.Bagisci))
+    {
+        <a asp-controller="BagisciPanel" asp-action="Index" class="btn btn-danger btn-lg mt-4">Panelime git</a>
+    }
+    else if (User.IsInRole(Roller.Kurum))
+    {
+        <a asp-controller="KurumPanel" asp-action="Index" class="btn btn-danger btn-lg mt-4">Kurum paneline git</a>
+    }
 </div>

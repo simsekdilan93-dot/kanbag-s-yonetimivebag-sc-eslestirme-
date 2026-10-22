@@ -14,6 +14,10 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
         services.AddScoped<IBagisciRepository, BagisciRepository>();
         services.AddScoped<IBagisRepository, BagisRepository>();
+        services.AddScoped<IKullaniciRepository, KullaniciRepository>();
+        services.AddScoped<IHastaneRepository, HastaneRepository>();
+        services.AddScoped<IKanTalebiRepository, KanTalebiRepository>();
+        services.AddScoped<IKanStokRepository, KanStokRepository>();
 
         return services;
     }
