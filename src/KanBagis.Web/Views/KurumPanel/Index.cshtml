@@ -7,7 +7,7 @@
 <p class="text-muted mb-4">@Model.Hastane.Sehir · @Model.Hastane.Telefon</p>
 
 <div class="row g-4">
-    <div class="col-lg-7">
+    <div class="col-lg-6">
         <h2 class="h5">Kan talepleriniz</h2>
         @if (Model.Talepler.Count == 0)
         {
@@ -37,20 +37,34 @@
         }
     </div>
 
-    <div class="col-lg-5">
-        <h2 class="h5">Kan stoğu</h2>
-        <table class="table table-sm">
-            <thead><tr><th>Kan grubu</th><th class="text-end">Ünite</th></tr></thead>
-            <tbody>
-                @foreach (var s in Model.Stoklar)
-                {
-                    <tr class="@(s.UniteSayisi < 5 ? "table-warning" : "")">
-                        <td>@s.KanGrubu.Ad</td>
-                        <td class="text-end">@s.UniteSayisi</td>
+    <div class="col-lg-6">
+        <h2 class="h5">Kan grubu durumu</h2>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Kan grubu</th>
+                        <th class="text-end">Stok (ünite)</th>
+                        <th class="text-end">@Model.Hastane.Sehir'de uygun bağışçı</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-        <p class="small text-muted">Sarı satırlar: stok 5 ünitenin altında.</p>
+                </thead>
+                <tbody>
+                    @foreach (var g in Model.KanGruplari)
+                    {
+                        <tr class="@(g.StokUnite < 5 ? "table-warning" : "")">
+                            <td>@g.KanGrubu.Ad</td>
+                            <td class="text-end">@g.StokUnite</td>
+                            <td class="text-end">@g.IldekiUygunBagisciSayisi</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="small text-muted">
+            Sarı satırlar: stok 5 ünitenin altında.
+            "Uygun bağışçı": bu gruba <a asp-controller="KanGrubu" asp-action="Index">kan verebilecek</a> (yalnızca aynı grup değil)
+            ve bugün bağış koşullarını (yaş, kilo, son bağış) sağlayan bağışçı sayısı.
+            Kişisel bilgiler (KVKK) gösterilmez.
+        </p>
     </div>
 </div>

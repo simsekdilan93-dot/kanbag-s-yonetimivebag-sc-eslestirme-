@@ -11,14 +11,15 @@ public record BagisciKayitIstegi(
     string Telefon,
     DateOnly DogumTarihi,
     Cinsiyet Cinsiyet,
-    string Sehir,
+    int Kilo,
+    string Il,
     int KanGrubuId);
 
 public record KurumKayitIstegi(
     string Eposta,
     string Parola,
     string HastaneAdi,
-    string Sehir,
+    string Il,
     string Telefon);
 
 public record KayitSonucu(bool Basarili, string? Hata, Kullanici? Kullanici)

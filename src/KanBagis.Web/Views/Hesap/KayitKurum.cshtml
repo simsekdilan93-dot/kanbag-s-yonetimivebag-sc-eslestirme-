@@ -1,4 +1,5 @@
 @model KurumKayitViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Kurum kaydı";
 }
@@ -39,9 +40,11 @@
                     <span asp-validation-for="HastaneAdi" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="Sehir" class="form-label"></label>
-                    <input asp-for="Sehir" class="form-control" />
-                    <span asp-validation-for="Sehir" class="text-danger"></span>
+                    <label asp-for="Il" class="form-label"></label>
+                    <select asp-for="Il" asp-items="@(new SelectList(Iller.AlfabetikSirali))" class="form-select">
+                        <option value="">Seçin</option>
+                    </select>
+                    <span asp-validation-for="Il" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
                     <label asp-for="Telefon" class="form-label"></label>

@@ -312,3 +312,146 @@ VALUES ('20261022172020_KullaniciVeRoller', '10.0.13');
 
 COMMIT;
 
+BEGIN TRANSACTION;
+ALTER TABLE "KanGruplari" ADD "AboGrubu" TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE "KanGruplari" ADD "RhPozitif" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "Bagiscilar" ADD "Kilo" INTEGER NOT NULL DEFAULT 0;
+
+UPDATE "Bagiscilar" SET "Kilo" = 62
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 84
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 55
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 78
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 58
+WHERE "Id" = 5;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 91
+WHERE "Id" = 6;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 67
+WHERE "Id" = 7;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 73
+WHERE "Id" = 8;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 52
+WHERE "Id" = 9;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "Kilo" = 88
+WHERE "Id" = 10;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'A', "RhPozitif" = 1
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'A', "RhPozitif" = 0
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'B', "RhPozitif" = 1
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'B', "RhPozitif" = 0
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'AB', "RhPozitif" = 1
+WHERE "Id" = 5;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'AB', "RhPozitif" = 0
+WHERE "Id" = 6;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'O', "RhPozitif" = 1
+WHERE "Id" = 7;
+SELECT changes();
+
+
+UPDATE "KanGruplari" SET "AboGrubu" = 'O', "RhPozitif" = 0
+WHERE "Id" = 8;
+SELECT changes();
+
+
+CREATE UNIQUE INDEX "IX_KanGruplari_AboGrubu_RhPozitif" ON "KanGruplari" ("AboGrubu", "RhPozitif");
+
+CREATE TABLE "ef_temp_Bagiscilar" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Bagiscilar" PRIMARY KEY AUTOINCREMENT,
+    "Ad" TEXT NOT NULL,
+    "Cinsiyet" TEXT NOT NULL,
+    "DogumTarihi" TEXT NOT NULL,
+    "Eposta" TEXT NULL,
+    "KanGrubuId" INTEGER NOT NULL,
+    "Kilo" INTEGER NOT NULL,
+    "Sehir" TEXT NOT NULL,
+    "Soyad" TEXT NOT NULL,
+    "TcKimlikNo" TEXT NOT NULL,
+    "Telefon" TEXT NOT NULL,
+    CONSTRAINT "CK_Bagisci_Kilo" CHECK (Kilo BETWEEN 30 AND 250),
+    CONSTRAINT "CK_Bagisci_TcKimlikNo_11Hane" CHECK (length(TcKimlikNo) = 11),
+    CONSTRAINT "FK_Bagiscilar_KanGruplari_KanGrubuId" FOREIGN KEY ("KanGrubuId") REFERENCES "KanGruplari" ("Id") ON DELETE RESTRICT
+);
+
+INSERT INTO "ef_temp_Bagiscilar" ("Id", "Ad", "Cinsiyet", "DogumTarihi", "Eposta", "KanGrubuId", "Kilo", "Sehir", "Soyad", "TcKimlikNo", "Telefon")
+SELECT "Id", "Ad", "Cinsiyet", "DogumTarihi", "Eposta", "KanGrubuId", "Kilo", "Sehir", "Soyad", "TcKimlikNo", "Telefon"
+FROM "Bagiscilar";
+
+COMMIT;
+
+PRAGMA foreign_keys = 0;
+
+BEGIN TRANSACTION;
+DROP TABLE "Bagiscilar";
+
+ALTER TABLE "ef_temp_Bagiscilar" RENAME TO "Bagiscilar";
+
+COMMIT;
+
+PRAGMA foreign_keys = 1;
+
+BEGIN TRANSACTION;
+CREATE INDEX "IX_Bagiscilar_KanGrubuId_Sehir" ON "Bagiscilar" ("KanGrubuId", "Sehir");
+
+CREATE UNIQUE INDEX "IX_Bagiscilar_TcKimlikNo" ON "Bagiscilar" ("TcKimlikNo");
+
+COMMIT;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261030065949_BagisciKiloVeKanGrubuAboRh', '10.0.13');
+

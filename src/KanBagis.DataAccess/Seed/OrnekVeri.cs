@@ -12,14 +12,14 @@ public static class OrnekVeri
 {
     public static readonly KanGrubu[] KanGruplari =
     [
-        new() { Id = 1, Ad = "A Rh+" },
-        new() { Id = 2, Ad = "A Rh-" },
-        new() { Id = 3, Ad = "B Rh+" },
-        new() { Id = 4, Ad = "B Rh-" },
-        new() { Id = 5, Ad = "AB Rh+" },
-        new() { Id = 6, Ad = "AB Rh-" },
-        new() { Id = 7, Ad = "0 Rh+" },
-        new() { Id = 8, Ad = "0 Rh-" },
+        new() { Id = 1, Ad = "A Rh+", AboGrubu = AboGrubu.A, RhPozitif = true },
+        new() { Id = 2, Ad = "A Rh-", AboGrubu = AboGrubu.A, RhPozitif = false },
+        new() { Id = 3, Ad = "B Rh+", AboGrubu = AboGrubu.B, RhPozitif = true },
+        new() { Id = 4, Ad = "B Rh-", AboGrubu = AboGrubu.B, RhPozitif = false },
+        new() { Id = 5, Ad = "AB Rh+", AboGrubu = AboGrubu.AB, RhPozitif = true },
+        new() { Id = 6, Ad = "AB Rh-", AboGrubu = AboGrubu.AB, RhPozitif = false },
+        new() { Id = 7, Ad = "0 Rh+", AboGrubu = AboGrubu.O, RhPozitif = true },
+        new() { Id = 8, Ad = "0 Rh-", AboGrubu = AboGrubu.O, RhPozitif = false },
     ];
 
     private static readonly DateTime StokTarihi = new(2026, 10, 1, 9, 0, 0, DateTimeKind.Utc);
@@ -45,16 +45,16 @@ public static class OrnekVeri
 
     public static readonly Bagisci[] Bagiscilar =
     [
-        new() { Id = 1,  TcKimlikNo = "99900000001", Ad = "Ayşe",   Soyad = "Yılmaz", Telefon = "05550000001", Eposta = "ayse.yilmaz@ornek.com",  DogumTarihi = new(1995, 4, 12),  Cinsiyet = Cinsiyet.Kadin, Sehir = "Bingöl",     KanGrubuId = 1 },
-        new() { Id = 2,  TcKimlikNo = "99900000002", Ad = "Mehmet", Soyad = "Kaya",   Telefon = "05550000002", Eposta = "mehmet.kaya@ornek.com",  DogumTarihi = new(1988, 9, 3),   Cinsiyet = Cinsiyet.Erkek, Sehir = "Bingöl",     KanGrubuId = 8 },
-        new() { Id = 3,  TcKimlikNo = "99900000003", Ad = "Zeynep", Soyad = "Demir",  Telefon = "05550000003", Eposta = null,                     DogumTarihi = new(2000, 1, 25),  Cinsiyet = Cinsiyet.Kadin, Sehir = "Elazığ",     KanGrubuId = 3 },
-        new() { Id = 4,  TcKimlikNo = "99900000004", Ad = "Ali",    Soyad = "Çelik",  Telefon = "05550000004", Eposta = "ali.celik@ornek.com",    DogumTarihi = new(1992, 6, 30),  Cinsiyet = Cinsiyet.Erkek, Sehir = "Bingöl",     KanGrubuId = 1 },
-        new() { Id = 5,  TcKimlikNo = "99900000005", Ad = "Elif",   Soyad = "Şahin",  Telefon = "05550000005", Eposta = "elif.sahin@ornek.com",   DogumTarihi = new(1998, 11, 8),  Cinsiyet = Cinsiyet.Kadin, Sehir = "Elazığ",     KanGrubuId = 8 },
-        new() { Id = 6,  TcKimlikNo = "99900000006", Ad = "Mustafa",Soyad = "Arslan", Telefon = "05550000006", Eposta = null,                     DogumTarihi = new(1985, 2, 14),  Cinsiyet = Cinsiyet.Erkek, Sehir = "Diyarbakır", KanGrubuId = 5 },
-        new() { Id = 7,  TcKimlikNo = "99900000007", Ad = "Fatma",  Soyad = "Doğan",  Telefon = "05550000007", Eposta = "fatma.dogan@ornek.com",  DogumTarihi = new(1990, 7, 19),  Cinsiyet = Cinsiyet.Kadin, Sehir = "Bingöl",     KanGrubuId = 7 },
-        new() { Id = 8,  TcKimlikNo = "99900000008", Ad = "Emre",   Soyad = "Koç",    Telefon = "05550000008", Eposta = "emre.koc@ornek.com",     DogumTarihi = new(1997, 3, 5),   Cinsiyet = Cinsiyet.Erkek, Sehir = "Diyarbakır", KanGrubuId = 2 },
-        new() { Id = 9,  TcKimlikNo = "99900000009", Ad = "Merve",  Soyad = "Aydın",  Telefon = "05550000009", Eposta = null,                     DogumTarihi = new(2001, 12, 1),  Cinsiyet = Cinsiyet.Kadin, Sehir = "Bingöl",     KanGrubuId = 4 },
-        new() { Id = 10, TcKimlikNo = "99900000010", Ad = "Burak",  Soyad = "Öztürk", Telefon = "05550000010", Eposta = "burak.ozturk@ornek.com", DogumTarihi = new(1993, 8, 22),  Cinsiyet = Cinsiyet.Erkek, Sehir = "Bingöl",     KanGrubuId = 8 },
+        new() { Id = 1,  TcKimlikNo = "99900000001", Ad = "Ayşe",   Soyad = "Yılmaz", Telefon = "05550000001", Eposta = "ayse.yilmaz@ornek.com",  DogumTarihi = new(1995, 4, 12),  Cinsiyet = Cinsiyet.Kadin, Kilo = 62, Sehir = "Bingöl",     KanGrubuId = 1 },
+        new() { Id = 2,  TcKimlikNo = "99900000002", Ad = "Mehmet", Soyad = "Kaya",   Telefon = "05550000002", Eposta = "mehmet.kaya@ornek.com",  DogumTarihi = new(1988, 9, 3),   Cinsiyet = Cinsiyet.Erkek, Kilo = 84, Sehir = "Bingöl",     KanGrubuId = 8 },
+        new() { Id = 3,  TcKimlikNo = "99900000003", Ad = "Zeynep", Soyad = "Demir",  Telefon = "05550000003", Eposta = null,                     DogumTarihi = new(2000, 1, 25),  Cinsiyet = Cinsiyet.Kadin, Kilo = 55, Sehir = "Elazığ",     KanGrubuId = 3 },
+        new() { Id = 4,  TcKimlikNo = "99900000004", Ad = "Ali",    Soyad = "Çelik",  Telefon = "05550000004", Eposta = "ali.celik@ornek.com",    DogumTarihi = new(1992, 6, 30),  Cinsiyet = Cinsiyet.Erkek, Kilo = 78, Sehir = "Bingöl",     KanGrubuId = 1 },
+        new() { Id = 5,  TcKimlikNo = "99900000005", Ad = "Elif",   Soyad = "Şahin",  Telefon = "05550000005", Eposta = "elif.sahin@ornek.com",   DogumTarihi = new(1998, 11, 8),  Cinsiyet = Cinsiyet.Kadin, Kilo = 58, Sehir = "Elazığ",     KanGrubuId = 8 },
+        new() { Id = 6,  TcKimlikNo = "99900000006", Ad = "Mustafa",Soyad = "Arslan", Telefon = "05550000006", Eposta = null,                     DogumTarihi = new(1985, 2, 14),  Cinsiyet = Cinsiyet.Erkek, Kilo = 91, Sehir = "Diyarbakır", KanGrubuId = 5 },
+        new() { Id = 7,  TcKimlikNo = "99900000007", Ad = "Fatma",  Soyad = "Doğan",  Telefon = "05550000007", Eposta = "fatma.dogan@ornek.com",  DogumTarihi = new(1990, 7, 19),  Cinsiyet = Cinsiyet.Kadin, Kilo = 67, Sehir = "Bingöl",     KanGrubuId = 7 },
+        new() { Id = 8,  TcKimlikNo = "99900000008", Ad = "Emre",   Soyad = "Koç",    Telefon = "05550000008", Eposta = "emre.koc@ornek.com",     DogumTarihi = new(1997, 3, 5),   Cinsiyet = Cinsiyet.Erkek, Kilo = 73, Sehir = "Diyarbakır", KanGrubuId = 2 },
+        new() { Id = 9,  TcKimlikNo = "99900000009", Ad = "Merve",  Soyad = "Aydın",  Telefon = "05550000009", Eposta = null,                     DogumTarihi = new(2001, 12, 1),  Cinsiyet = Cinsiyet.Kadin, Kilo = 52, Sehir = "Bingöl",     KanGrubuId = 4 },
+        new() { Id = 10, TcKimlikNo = "99900000010", Ad = "Burak",  Soyad = "Öztürk", Telefon = "05550000010", Eposta = "burak.ozturk@ornek.com", DogumTarihi = new(1993, 8, 22),  Cinsiyet = Cinsiyet.Erkek, Kilo = 88, Sehir = "Bingöl",     KanGrubuId = 8 },
     ];
 
     public static readonly KanTalebi[] KanTalepleri =

@@ -115,6 +115,9 @@ namespace KanBagis.DataAccess.Migrations
                     b.Property<int>("KanGrubuId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Kilo")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Sehir")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -145,6 +148,8 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.ToTable("Bagiscilar", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Bagisci_Kilo", "Kilo BETWEEN 30 AND 250");
+
                             t.HasCheckConstraint("CK_Bagisci_TcKimlikNo_11Hane", "length(TcKimlikNo) = 11");
                         });
 
@@ -157,6 +162,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1995, 4, 12),
                             Eposta = "ayse.yilmaz@ornek.com",
                             KanGrubuId = 1,
+                            Kilo = 62,
                             Sehir = "Bingöl",
                             Soyad = "Yılmaz",
                             TcKimlikNo = "99900000001",
@@ -170,6 +176,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1988, 9, 3),
                             Eposta = "mehmet.kaya@ornek.com",
                             KanGrubuId = 8,
+                            Kilo = 84,
                             Sehir = "Bingöl",
                             Soyad = "Kaya",
                             TcKimlikNo = "99900000002",
@@ -182,6 +189,7 @@ namespace KanBagis.DataAccess.Migrations
                             Cinsiyet = "Kadin",
                             DogumTarihi = new DateOnly(2000, 1, 25),
                             KanGrubuId = 3,
+                            Kilo = 55,
                             Sehir = "Elazığ",
                             Soyad = "Demir",
                             TcKimlikNo = "99900000003",
@@ -195,6 +203,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1992, 6, 30),
                             Eposta = "ali.celik@ornek.com",
                             KanGrubuId = 1,
+                            Kilo = 78,
                             Sehir = "Bingöl",
                             Soyad = "Çelik",
                             TcKimlikNo = "99900000004",
@@ -208,6 +217,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1998, 11, 8),
                             Eposta = "elif.sahin@ornek.com",
                             KanGrubuId = 8,
+                            Kilo = 58,
                             Sehir = "Elazığ",
                             Soyad = "Şahin",
                             TcKimlikNo = "99900000005",
@@ -220,6 +230,7 @@ namespace KanBagis.DataAccess.Migrations
                             Cinsiyet = "Erkek",
                             DogumTarihi = new DateOnly(1985, 2, 14),
                             KanGrubuId = 5,
+                            Kilo = 91,
                             Sehir = "Diyarbakır",
                             Soyad = "Arslan",
                             TcKimlikNo = "99900000006",
@@ -233,6 +244,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1990, 7, 19),
                             Eposta = "fatma.dogan@ornek.com",
                             KanGrubuId = 7,
+                            Kilo = 67,
                             Sehir = "Bingöl",
                             Soyad = "Doğan",
                             TcKimlikNo = "99900000007",
@@ -246,6 +258,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1997, 3, 5),
                             Eposta = "emre.koc@ornek.com",
                             KanGrubuId = 2,
+                            Kilo = 73,
                             Sehir = "Diyarbakır",
                             Soyad = "Koç",
                             TcKimlikNo = "99900000008",
@@ -258,6 +271,7 @@ namespace KanBagis.DataAccess.Migrations
                             Cinsiyet = "Kadin",
                             DogumTarihi = new DateOnly(2001, 12, 1),
                             KanGrubuId = 4,
+                            Kilo = 52,
                             Sehir = "Bingöl",
                             Soyad = "Aydın",
                             TcKimlikNo = "99900000009",
@@ -271,6 +285,7 @@ namespace KanBagis.DataAccess.Migrations
                             DogumTarihi = new DateOnly(1993, 8, 22),
                             Eposta = "burak.ozturk@ornek.com",
                             KanGrubuId = 8,
+                            Kilo = 88,
                             Sehir = "Bingöl",
                             Soyad = "Öztürk",
                             TcKimlikNo = "99900000010",
@@ -429,14 +444,25 @@ namespace KanBagis.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("AboGrubu")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Ad")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("RhPozitif")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Ad")
+                        .IsUnique();
+
+                    b.HasIndex("AboGrubu", "RhPozitif")
                         .IsUnique();
 
                     b.ToTable("KanGruplari", (string)null);
@@ -445,42 +471,58 @@ namespace KanBagis.DataAccess.Migrations
                         new
                         {
                             Id = 1,
-                            Ad = "A Rh+"
+                            AboGrubu = "A",
+                            Ad = "A Rh+",
+                            RhPozitif = true
                         },
                         new
                         {
                             Id = 2,
-                            Ad = "A Rh-"
+                            AboGrubu = "A",
+                            Ad = "A Rh-",
+                            RhPozitif = false
                         },
                         new
                         {
                             Id = 3,
-                            Ad = "B Rh+"
+                            AboGrubu = "B",
+                            Ad = "B Rh+",
+                            RhPozitif = true
                         },
                         new
                         {
                             Id = 4,
-                            Ad = "B Rh-"
+                            AboGrubu = "B",
+                            Ad = "B Rh-",
+                            RhPozitif = false
                         },
                         new
                         {
                             Id = 5,
-                            Ad = "AB Rh+"
+                            AboGrubu = "AB",
+                            Ad = "AB Rh+",
+                            RhPozitif = true
                         },
                         new
                         {
                             Id = 6,
-                            Ad = "AB Rh-"
+                            AboGrubu = "AB",
+                            Ad = "AB Rh-",
+                            RhPozitif = false
                         },
                         new
                         {
                             Id = 7,
-                            Ad = "0 Rh+"
+                            AboGrubu = "O",
+                            Ad = "0 Rh+",
+                            RhPozitif = true
                         },
                         new
                         {
                             Id = 8,
-                            Ad = "0 Rh-"
+                            AboGrubu = "O",
+                            Ad = "0 Rh-",
+                            RhPozitif = false
                         });
                 });
 

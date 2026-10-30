@@ -1,11 +1,15 @@
+using KanBagis.Business.Bagiscilar;
 using KanBagis.DataAccess.Repositories;
 using KanBagis.Entities;
 
 namespace KanBagis.Business.Paneller;
 
-public record BagisciPaneli(Bagisci Bagisci, DateTime? SonBagisTarihi, DateTime? SonrakiUygunTarih, List<Bildirim> Bildirimler);
+public record BagisciPaneli(BagisciProfili Profil, List<Bildirim> Bildirimler);
 
-public record KurumPaneli(Hastane Hastane, List<KanTalebi> Talepler, List<KanStok> Stoklar);
+/// <summary>Kurum panelinde bir kan grubunun özeti. KVKK gereği bağışçı kimlikleri değil, yalnızca sayıları gösterilir.</summary>
+public record KanGrubuOzeti(KanGrubu KanGrubu, int StokUnite, int IldekiUygunBagisciSayisi);
+
+public record KurumPaneli(Hastane Hastane, List<KanTalebi> Talepler, List<KanGrubuOzeti> KanGruplari);
 
 public interface IPanelService
 {
@@ -14,23 +18,18 @@ public interface IPanelService
 }
 
 public sealed class PanelService(
+    IBagisciService bagisciServisi,
     IBagisciRepository bagiscilar,
     IHastaneRepository hastaneler,
     IKanTalebiRepository talepler,
     IKanStokRepository stoklar) : IPanelService
 {
-    /// <summary>İki bağış arasında beklenmesi gereken süre (ay).</summary>
-    public const int BagisAraligiAy = 3;
-
     public async Task<BagisciPaneli?> BagisciPaneliAsync(int bagisciId)
     {
-        var bagisci = await bagiscilar.KanGrubuylaGetirAsync(bagisciId);
-        if (bagisci is null) return null;
+        var profil = await bagisciServisi.ProfilGetirAsync(bagisciId);
+        if (profil is null) return null;
 
-        var sonBagis = await bagiscilar.SonBagisTarihiAsync(bagisciId);
-        var bildirimler = await bagiscilar.BildirimleriGetirAsync(bagisciId);
-
-        return new BagisciPaneli(bagisci, sonBagis, sonBagis?.AddMonths(BagisAraligiAy), bildirimler);
+        return new BagisciPaneli(profil, await bagiscilar.BildirimleriGetirAsync(bagisciId));
     }
 
     public async Task<KurumPaneli?> KurumPaneliAsync(int hastaneId)
@@ -38,9 +37,13 @@ public sealed class PanelService(
         var hastane = await hastaneler.IdIleGetirAsync(hastaneId);
         if (hastane is null) return null;
 
-        return new KurumPaneli(
-            hastane,
-            await talepler.HastaneninTalepleriAsync(hastaneId),
-            await stoklar.KanGrubuylaTumuAsync());
+        var ozetler = new List<KanGrubuOzeti>();
+        foreach (var stok in await stoklar.KanGrubuylaTumuAsync())
+        {
+            var uygunlar = await bagisciServisi.UygunBagiscilariBulAsync(stok.KanGrubuId, hastane.Sehir);
+            ozetler.Add(new KanGrubuOzeti(stok.KanGrubu, stok.UniteSayisi, uygunlar.Count));
+        }
+
+        return new KurumPaneli(hastane, await talepler.HastaneninTalepleriAsync(hastaneId), ozetler);
     }
 }

@@ -1,4 +1,5 @@
 @model BagisciKayitViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = "Bağışçı kaydı";
 }
@@ -55,7 +56,7 @@
                 </div>
                 <div class="col-md-4">
                     <label asp-for="DogumTarihi" class="form-label"></label>
-                    <input asp-for="DogumTarihi" type="date" class="form-control" />
+                    <input asp-for="DogumTarihi" type="date" class="form-control" max="@DateTime.Today.AddYears(-BagisciDogrulama.KayitIcinMinimumYas).ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="DogumTarihi" class="text-danger"></span>
                 </div>
                 <div class="col-md-4">
@@ -73,9 +74,18 @@
                     <span asp-validation-for="KanGrubuId" class="text-danger"></span>
                 </div>
                 <div class="col-md-6">
-                    <label asp-for="Sehir" class="form-label"></label>
-                    <input asp-for="Sehir" class="form-control" />
-                    <span asp-validation-for="Sehir" class="text-danger"></span>
+                    <label asp-for="Il" class="form-label"></label>
+                    <select asp-for="Il" asp-items="@(new SelectList(Iller.AlfabetikSirali))" class="form-select">
+                        <option value="">Seçin</option>
+                    </select>
+                    <div class="form-text">Kan ihtiyacı olduğunda bu ildeki talepler için bildirim alırsınız.</div>
+                    <span asp-validation-for="Il" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Kilo" class="form-label"></label>
+                    <input asp-for="Kilo" type="number" class="form-control" inputmode="numeric" />
+                    <div class="form-text">Bağış için en az @BagisUygunlukKurali.MinimumKilo kg gerekir.</div>
+                    <span asp-validation-for="Kilo" class="text-danger"></span>
                 </div>
             </div>
 

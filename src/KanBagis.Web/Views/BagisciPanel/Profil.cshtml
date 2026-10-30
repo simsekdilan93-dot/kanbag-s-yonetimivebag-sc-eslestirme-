@@ -1,0 +1,74 @@
+@model BagisciProfilViewModel
+@{
+    ViewData["Title"] = "Profilim";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <h1 class="h3 mb-4">Profilim</h1>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="h6 text-uppercase text-muted">Kimlik bilgileri</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Ad soyad</dt>
+                    <dd class="col-sm-8">@Model.AdSoyad</dd>
+                    <dt class="col-sm-4">TC kimlik no</dt>
+                    <dd class="col-sm-8">@Model.TcMaskeli</dd>
+                    <dt class="col-sm-4">Doğum tarihi</dt>
+                    <dd class="col-sm-8">@Model.DogumTarihi.ToString("dd.MM.yyyy")</dd>
+                    <dt class="col-sm-4">Cinsiyet</dt>
+                    <dd class="col-sm-8">@Model.Cinsiyet</dd>
+                </dl>
+                <p class="small text-muted mt-2 mb-0">Kimlik bilgileri bu sayfadan değiştirilemez.</p>
+            </div>
+        </div>
+
+        <form asp-action="Profil" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="Telefon" class="form-label"></label>
+                    <input asp-for="Telefon" class="form-control" inputmode="tel" autocomplete="tel" />
+                    <span asp-validation-for="Telefon" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Il" class="form-label"></label>
+                    <select asp-for="Il" asp-items="@(new Microsoft.AspNetCore.Mvc.Rendering.SelectList(Iller.AlfabetikSirali))" class="form-select">
+                        <option value="">Seçin</option>
+                    </select>
+                    <span asp-validation-for="Il" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Kilo" class="form-label"></label>
+                    <input asp-for="Kilo" type="number" class="form-control" inputmode="numeric" />
+                    <span asp-validation-for="Kilo" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="KanGrubuId" class="form-label"></label>
+                    @if (Model.KanGrubuKilitli)
+                    {
+                        @* Kilitliyse seçim kutusu pasif; değer yine de gönderilsin diye gizli alan. Sunucu ayrıca kontrol eder. *@
+                        <select asp-for="KanGrubuId" asp-items="Model.KanGruplari" class="form-select" disabled></select>
+                        <input type="hidden" asp-for="KanGrubuId" />
+                        <div class="form-text">Bağış kaydınız olduğu için kan grubunuz laboratuvarda doğrulanmıştır ve değiştirilemez.</div>
+                    }
+                    else
+                    {
+                        <select asp-for="KanGrubuId" asp-items="Model.KanGruplari" class="form-select"></select>
+                        <div class="form-text">İlk bağışınızdan sonra kan grubunuz kilitlenir.</div>
+                    }
+                    <span asp-validation-for="KanGrubuId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-danger">Kaydet</button>
+            <a asp-action="Index" class="btn btn-link">Vazgeç</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -23,6 +23,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Ana sayfa</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="KanGrubu" asp-action="Index">Kan grupları</a>
+                        </li>
                         @* Menüdeki bağlantılar yalnızca kolaylık içindir; asıl koruma controller'lardaki [Authorize] filtresidir. *@
                         @if (User.IsInRole(Roller.Bagisci))
                         {

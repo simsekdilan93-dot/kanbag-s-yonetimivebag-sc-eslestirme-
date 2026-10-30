@@ -1,12 +1,20 @@
 @model BagisciPaneli
 @{
     ViewData["Title"] = "Bağışçı paneli";
-    var b = Model.Bagisci;
-    var bugun = DateTime.UtcNow;
-    var uygun = Model.SonrakiUygunTarih is null || Model.SonrakiUygunTarih <= bugun;
+    var profil = Model.Profil;
+    var b = profil.Bagisci;
+    var uygunluk = profil.Uygunluk;
 }
 
-<h1 class="h3 mb-4">Merhaba, @b.Ad</h1>
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success" role="status">@mesaj</div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <h1 class="h3 mb-0">Merhaba, @b.Ad</h1>
+    <a asp-action="Profil" class="btn btn-outline-secondary btn-sm">Profilimi düzenle</a>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-4">
@@ -14,6 +22,7 @@
             <div class="card-body">
                 <div class="text-muted small">Kan grubu</div>
                 <div class="fs-3 fw-semibold text-danger">@b.KanGrubu.Ad</div>
+                <div class="small text-muted">@b.Sehir · @profil.BagisSayisi bağış</div>
             </div>
         </div>
     </div>
@@ -21,21 +30,31 @@
         <div class="card h-100">
             <div class="card-body">
                 <div class="text-muted small">Son bağış</div>
-                <div class="fs-5">@(Model.SonBagisTarihi?.ToString("dd.MM.yyyy") ?? "Henüz bağış yok")</div>
+                <div class="fs-5">@(profil.SonBagisTarihi?.ToString("dd.MM.yyyy") ?? "Henüz bağış yok")</div>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card h-100 @(uygunluk.Uygun ? "border-success" : "border-warning")">
             <div class="card-body">
                 <div class="text-muted small">Bağış durumu</div>
-                @if (uygun)
+                @if (uygunluk.Uygun)
                 {
                     <div class="fs-5 text-success">Bağış yapabilirsiniz</div>
                 }
                 else
                 {
-                    <div class="fs-5">@Model.SonrakiUygunTarih!.Value.ToString("dd.MM.yyyy") tarihinden sonra</div>
+                    <div class="fs-5">Şu an bağış yapamazsınız</div>
+                    <ul class="small mb-0 ps-3">
+                        @foreach (var neden in uygunluk.Nedenler)
+                        {
+                            <li>@neden</li>
+                        }
+                    </ul>
+                    @if (uygunluk.SonrakiUygunTarih is { } tarih)
+                    {
+                        <div class="small mt-1">Uygun olacağınız tarih: <strong>@tarih.ToString("dd.MM.yyyy")</strong></div>
+                    }
                 }
             </div>
         </div>

@@ -18,14 +18,20 @@ public class KimlikServiceTestleri : IDisposable
             new KullaniciRepository(_db.Context),
             new BagisciRepository(_db.Context),
             new HastaneRepository(_db.Context),
+            new EfRepository<KanGrubu>(_db.Context),
             new Pbkdf2ParolaHasher(iterasyon: 1_000),
             _zaman);
     }
 
     public void Dispose() => _db.Dispose();
 
-    private static BagisciKayitIstegi Istek(string eposta = "Deniz@Ornek.com", string parola = "Gizli1234", string tc = "99900000050") =>
-        new(eposta, parola, tc, "Deniz", "Yıldız", "05550000050", new DateOnly(1996, 5, 20), Cinsiyet.Kadin, "Bingöl", 1);
+    private static readonly string DenizTc = TestVerisi.GecerliTc(50);
+
+    private static BagisciKayitIstegi Istek(
+        string eposta = "Deniz@Ornek.com", string parola = "Gizli1234", string? tc = null,
+        DateOnly? dogumTarihi = null, string il = "Bingöl", int kilo = 60, int kanGrubuId = 1) =>
+        new(eposta, parola, tc ?? DenizTc, "Deniz", "Yıldız", "05550000050",
+            dogumTarihi ?? new DateOnly(1996, 5, 20), Cinsiyet.Kadin, kilo, il, kanGrubuId);
 
     // ---------------- KAYIT ----------------
 
@@ -39,7 +45,8 @@ public class KimlikServiceTestleri : IDisposable
         var kullanici = await _db.Context.Kullanicilar.Include(k => k.Bagisci).SingleAsync();
         Assert.Equal("deniz@ornek.com", kullanici.Eposta);       // küçük harfe çevrildi
         Assert.Equal(KullaniciRolu.Bagisci, kullanici.Rol);
-        Assert.Equal("99900000050", kullanici.Bagisci!.TcKimlikNo);
+        Assert.Equal(DenizTc, kullanici.Bagisci!.TcKimlikNo);
+        Assert.Equal(60, kullanici.Bagisci.Kilo);
         Assert.NotEqual("Gizli1234", kullanici.ParolaHash);       // düz metin saklanmadı
         Assert.DoesNotContain("Gizli1234", kullanici.ParolaHash);
     }
@@ -49,19 +56,65 @@ public class KimlikServiceTestleri : IDisposable
     {
         await _kimlik.BagisciKaydetAsync(Istek());
 
-        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(eposta: "  DENIZ@ornek.com ", tc: "99900000051"));
+        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(eposta: "  DENIZ@ornek.com ", tc: TestVerisi.GecerliTc(51)));
 
         Assert.False(sonuc.Basarili);
         Assert.Contains("e-posta", sonuc.Hata);
     }
 
     [Fact]
-    public async Task Kayitli_TC_ile_kayit_reddedilir()
+    public async Task Kayitli_TC_ile_ikinci_kayit_reddedilir()
     {
-        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(tc: "99900000001")); // örnek veride var
+        await _kimlik.BagisciKaydetAsync(Istek());
+
+        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(eposta: "baska@ornek.com"));
 
         Assert.False(sonuc.Basarili);
-        Assert.Contains("TC", sonuc.Hata);
+        Assert.Equal("Bu TC kimlik numarasıyla kayıtlı bir bağışçı var.", sonuc.Hata);
+    }
+
+    [Theory]
+    [InlineData("12345678901")]   // kontrol haneleri tutmuyor
+    [InlineData("01234567890")]   // 0 ile başlıyor
+    [InlineData("99900000001")]   // örnek verideki sentetik numara (bilerek geçersiz)
+    [InlineData("1234567890")]    // 10 hane
+    public async Task Gecersiz_TC_ile_kayit_reddedilir(string tc)
+    {
+        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(tc: tc));
+
+        Assert.Equal("TC kimlik numarası geçersiz.", sonuc.Hata);
+    }
+
+    [Fact]
+    public async Task On_sekiz_yas_altinda_kayit_reddedilir()
+    {
+        // Test tarihi 22.10.2026 → 23.10.2008 doğumlu kişi henüz 17 yaşında.
+        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(dogumTarihi: new DateOnly(2008, 10, 23)));
+        Assert.False(sonuc.Basarili);
+        Assert.Contains("18", sonuc.Hata);
+
+        // Tam 18. doğum günü: kabul.
+        Assert.True((await _kimlik.BagisciKaydetAsync(Istek(dogumTarihi: new DateOnly(2008, 10, 22)))).Basarili);
+    }
+
+    [Theory]
+    [InlineData("bingol")]
+    [InlineData("Bingol")]
+    [InlineData("")]
+    [InlineData("Atlantis")]
+    public async Task Listede_olmayan_il_reddedilir(string il)
+    {
+        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(il: il));
+
+        Assert.Equal("Geçerli bir il seçin.", sonuc.Hata);
+    }
+
+    [Fact]
+    public async Task Olmayan_kan_grubu_reddedilir()
+    {
+        var sonuc = await _kimlik.BagisciKaydetAsync(Istek(kanGrubuId: 99));
+
+        Assert.Equal("Geçerli bir kan grubu seçin.", sonuc.Hata);
     }
 
     [Theory]

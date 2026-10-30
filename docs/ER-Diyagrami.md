@@ -16,6 +16,8 @@ erDiagram
     KAN_GRUBU {
         int Id PK
         string Ad UK "A Rh+, 0 Rh- ..."
+        string AboGrubu "A / B / AB / O"
+        bool RhPozitif "(AboGrubu, RhPozitif) UK"
     }
 
     BAGISCI {
@@ -27,7 +29,8 @@ erDiagram
         string Eposta "boş olabilir"
         date DogumTarihi
         string Cinsiyet
-        string Sehir
+        int Kilo "30-250 (CHECK)"
+        string Sehir "81 il listesinden"
         int KanGrubuId FK
     }
 
@@ -93,7 +96,7 @@ erDiagram
 
 | Varlık | Açıklama |
 |---|---|
-| **KanGrubu** | 8 kan grubunun tutulduğu sabit tablo. |
+| **KanGrubu** | 8 kan grubunun tutulduğu sabit tablo. ABO grubu ve Rh faktörü ayrı alanlarda tutulur; uyumluluk bu ikisinden hesaplanır (Hafta 6). |
 | **Bagisci** | Sisteme kayıtlı gönüllü bağışçı. |
 | **Hastane** | Kan talebi açan ve bağış kabul eden kurum. |
 | **KanStok** | Her kan grubu için eldeki ünite sayısı. |

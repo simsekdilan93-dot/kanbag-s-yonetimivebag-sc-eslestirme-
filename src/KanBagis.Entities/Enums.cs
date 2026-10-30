@@ -8,6 +8,9 @@ public enum Cinsiyet
     [Display(Name = "Erkek")] Erkek,
 }
 
+/// <summary>ABO kan grubu. "O" harfi Türkçede "0 (sıfır)" grubu olarak bilinir.</summary>
+public enum AboGrubu { A, B, AB, O }
+
 public enum Aciliyet { Normal, Acil }
 
 public enum TalepDurumu { Acik, Karsilandi, Iptal }

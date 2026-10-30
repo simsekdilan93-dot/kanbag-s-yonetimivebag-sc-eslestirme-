@@ -15,7 +15,7 @@ public class KisitTestleri : IDisposable
     private static Bagisci Bagisci(string tc, int kanGrubuId = 1) => new()
     {
         TcKimlikNo = tc, Ad = "Deneme", Soyad = "Kişi", Telefon = "05550000099",
-        DogumTarihi = new DateOnly(1999, 1, 1), Cinsiyet = Cinsiyet.Erkek,
+        DogumTarihi = new DateOnly(1999, 1, 1), Cinsiyet = Cinsiyet.Erkek, Kilo = 70,
         Sehir = "Bingöl", KanGrubuId = kanGrubuId,
     };
 
@@ -39,6 +39,24 @@ public class KisitTestleri : IDisposable
     public async Task Olmayan_kan_grubuna_bagisci_eklenemez_FOREIGN_KEY()
     {
         _db.Context.Bagiscilar.Add(Bagisci("99900000098", kanGrubuId: 99));
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => _db.Context.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Kilo_mantikli_aralikta_olmali_CHECK()
+    {
+        var bagisci = Bagisci("99900000097");
+        bagisci.Kilo = 0;
+        _db.Context.Bagiscilar.Add(bagisci);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => _db.Context.SaveChangesAsync());
+    }
+
+    [Fact]
+    public async Task Ayni_ABO_ve_Rh_ikinci_kez_eklenemez_UNIQUE()
+    {
+        _db.Context.KanGruplari.Add(new KanGrubu { Id = 99, Ad = "Sıfır negatif", AboGrubu = AboGrubu.O, RhPozitif = false });
 
         await Assert.ThrowsAsync<DbUpdateException>(() => _db.Context.SaveChangesAsync());
     }

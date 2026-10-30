@@ -1,4 +1,6 @@
+using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.Guvenlik;
+using KanBagis.Business.Tanimlar;
 using KanBagis.DataAccess.Repositories;
 using KanBagis.Entities;
 
@@ -15,6 +17,7 @@ public sealed class KimlikService(
     IKullaniciRepository kullanicilar,
     IBagisciRepository bagiscilar,
     IHastaneRepository hastaneler,
+    IRepository<KanGrubu> kanGruplari,
     IParolaHasher hasher,
     TimeProvider zaman) : IKimlikService
 {
@@ -29,11 +32,21 @@ public sealed class KimlikService(
     {
         var eposta = EpostaNormallestir(istek.Eposta);
 
+        var tc = istek.TcKimlikNo.Trim();
+
         if (ParolaKuralHatasi(istek.Parola) is { } parolaHatasi)
             return KayitSonucu.Hatali(parolaHatasi);
+        if (!BagisciDogrulama.TcKimlikNoGecerliMi(tc))
+            return KayitSonucu.Hatali("TC kimlik numarası geçersiz.");
+        if (BagisciDogrulama.YasHesapla(istek.DogumTarihi, Bugun()) < BagisciDogrulama.KayitIcinMinimumYas)
+            return KayitSonucu.Hatali($"Bağışçı olarak kayıt için en az {BagisciDogrulama.KayitIcinMinimumYas} yaşında olmalısınız.");
+        if (BagisciDogrulama.OrtakAlanHatasi(istek.Telefon.Trim(), istek.Il, istek.Kilo) is { } alanHatasi)
+            return KayitSonucu.Hatali(alanHatasi);
+        if (await kanGruplari.IdIleGetirAsync(istek.KanGrubuId) is null)
+            return KayitSonucu.Hatali("Geçerli bir kan grubu seçin.");
         if (await kullanicilar.EpostaKayitliMiAsync(eposta))
             return KayitSonucu.Hatali("Bu e-posta adresiyle kayıtlı bir hesap var.");
-        if (await bagiscilar.TcIleGetirAsync(istek.TcKimlikNo) is not null)
+        if (await bagiscilar.TcIleGetirAsync(tc) is not null)
             return KayitSonucu.Hatali("Bu TC kimlik numarasıyla kayıtlı bir bağışçı var.");
 
         // Kullanıcı ve bağışçı aynı SaveChanges içinde (tek transaction) eklenir:
@@ -46,14 +59,15 @@ public sealed class KimlikService(
             OlusturmaTarihi = Simdi(),
             Bagisci = new Bagisci
             {
-                TcKimlikNo = istek.TcKimlikNo.Trim(),
+                TcKimlikNo = tc,
                 Ad = istek.Ad.Trim(),
                 Soyad = istek.Soyad.Trim(),
                 Telefon = istek.Telefon.Trim(),
                 Eposta = eposta,
                 DogumTarihi = istek.DogumTarihi,
                 Cinsiyet = istek.Cinsiyet,
-                Sehir = istek.Sehir.Trim(),
+                Kilo = istek.Kilo,
+                Sehir = istek.Il,
                 KanGrubuId = istek.KanGrubuId,
             },
         };
@@ -68,9 +82,13 @@ public sealed class KimlikService(
 
         if (ParolaKuralHatasi(istek.Parola) is { } parolaHatasi)
             return KayitSonucu.Hatali(parolaHatasi);
+        if (!Iller.GecerliMi(istek.Il))
+            return KayitSonucu.Hatali("Geçerli bir il seçin.");
+        if (!BagisciDogrulama.TelefonGecerliMi(istek.Telefon.Trim()))
+            return KayitSonucu.Hatali("Telefon 0 ile başlayan 11 hane olmalıdır.");
         if (await kullanicilar.EpostaKayitliMiAsync(eposta))
             return KayitSonucu.Hatali("Bu e-posta adresiyle kayıtlı bir hesap var.");
-        if (await hastaneler.AdVeSehirIleVarMiAsync(istek.HastaneAdi.Trim(), istek.Sehir.Trim()))
+        if (await hastaneler.AdVeSehirIleVarMiAsync(istek.HastaneAdi.Trim(), istek.Il))
             return KayitSonucu.Hatali("Bu hastane zaten kayıtlı.");
 
         var kullanici = new Kullanici
@@ -82,7 +100,7 @@ public sealed class KimlikService(
             Hastane = new Hastane
             {
                 Ad = istek.HastaneAdi.Trim(),
-                Sehir = istek.Sehir.Trim(),
+                Sehir = istek.Il,
                 Telefon = istek.Telefon.Trim(),
             },
         };
@@ -145,4 +163,6 @@ public sealed class KimlikService(
     private static string EpostaNormallestir(string eposta) => eposta.Trim().ToLowerInvariant();
 
     private DateTime Simdi() => zaman.GetUtcNow().UtcDateTime;
+
+    private DateOnly Bugun() => DateOnly.FromDateTime(Simdi());
 }

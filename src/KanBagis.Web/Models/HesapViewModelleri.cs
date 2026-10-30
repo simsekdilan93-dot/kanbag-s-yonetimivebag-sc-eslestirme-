@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using KanBagis.Business.Bagiscilar;
 using KanBagis.Entities;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -43,7 +44,7 @@ public abstract class KayitViewModelTemeli
 public class BagisciKayitViewModel : KayitViewModelTemeli
 {
     [Required(ErrorMessage = "TC kimlik no zorunludur.")]
-    [RegularExpression(@"^\d{11}$", ErrorMessage = "TC kimlik no 11 haneli olmalıdır.")]
+    [TcKimlikNo]
     [Display(Name = "TC kimlik no")]
     public string TcKimlikNo { get; set; } = string.Empty;
 
@@ -65,9 +66,14 @@ public class BagisciKayitViewModel : KayitViewModelTemeli
     [Required(ErrorMessage = "Cinsiyet seçin.")]
     public Cinsiyet? Cinsiyet { get; set; }
 
-    [Required(ErrorMessage = "Şehir zorunludur."), StringLength(30)]
-    [Display(Name = "Şehir")]
-    public string Sehir { get; set; } = string.Empty;
+    [Required(ErrorMessage = "Kilo zorunludur.")]
+    [Range(BagisciDogrulama.MinimumKilo, BagisciDogrulama.MaksimumKilo, ErrorMessage = "Kilo {1}–{2} arasında olmalıdır.")]
+    [Display(Name = "Kilo (kg)")]
+    public int? Kilo { get; set; }
+
+    [Required(ErrorMessage = "İl seçin.")]
+    [Display(Name = "İl")]
+    public string Il { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Kan grubu seçin.")]
     [Display(Name = "Kan grubu")]
@@ -82,11 +88,20 @@ public class KurumKayitViewModel : KayitViewModelTemeli
     [Display(Name = "Hastane adı")]
     public string HastaneAdi { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Şehir zorunludur."), StringLength(30)]
-    [Display(Name = "Şehir")]
-    public string Sehir { get; set; } = string.Empty;
+    [Required(ErrorMessage = "İl seçin.")]
+    [Display(Name = "İl")]
+    public string Il { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Telefon zorunludur.")]
     [RegularExpression(@"^0\d{10}$", ErrorMessage = "Telefon 0 ile başlayan 11 hane olmalıdır.")]
     public string Telefon { get; set; } = string.Empty;
+}
+
+/// <summary>TC kimlik no algoritma kontrolü (iş katmanındaki kuralı kullanır, form hatası olarak gösterir).</summary>
+public sealed class TcKimlikNoAttribute : ValidationAttribute
+{
+    public TcKimlikNoAttribute() : base("TC kimlik numarası geçersiz.") { }
+
+    public override bool IsValid(object? value) =>
+        value is null || BagisciDogrulama.TcKimlikNoGecerliMi(value as string);
 }

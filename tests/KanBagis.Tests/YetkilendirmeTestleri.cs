@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.Guvenlik;
 using KanBagis.Business.Kimlik;
 using KanBagis.Entities;
@@ -90,6 +91,77 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         Assert.Contains("/Hesap/Giris", yanit.Headers.Location!.ToString());
     }
 
+    // ---------------- Profil (sahiplik) ----------------
+
+    [Fact]
+    public async Task Bagisci_kendi_profilini_gorur_TC_maskelenir()
+    {
+        var istemci = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+
+        var html = await istemci.GetStringAsync("/BagisciPanel/Profil");
+
+        Assert.Contains("Profilim", html);
+        Assert.Contains("*****", html);
+    }
+
+    [Fact]
+    public async Task Profil_formuna_baskasinin_Id_si_eklense_bile_yalnizca_kendi_kaydi_guncellenir()
+    {
+        var istemci = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+        var token = await TokenAlAsync(istemci, "/BagisciPanel/Profil");
+
+        // Saldırgan formu elle değiştirip örnek verideki 1 numaralı bağışçının (Ayşe) Id'sini ekliyor.
+        var yanit = await istemci.PostAsync("/BagisciPanel/Profil", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Id"] = "1",
+            ["BagisciId"] = "1",
+            ["Telefon"] = "05009999999",
+            ["Il"] = "Van",
+            ["Kilo"] = "65",
+            ["KanGrubuId"] = "1",
+            ["__RequestVerificationToken"] = token,
+        }));
+
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Contains("Van", await istemci.GetStringAsync("/BagisciPanel"));   // kendi kaydı değişti
+
+        using var scope = _uygulama.Services.CreateScope();
+        var ayse = await scope.ServiceProvider.GetRequiredService<IBagisciService>().ProfilGetirAsync(1);
+        Assert.Equal("05550000001", ayse!.Bagisci.Telefon);                      // Ayşe'ninki değişmedi
+        Assert.Equal("Bingöl", ayse.Bagisci.Sehir);
+    }
+
+    [Fact]
+    public async Task Kurum_bagisci_profiline_erisemez()
+    {
+        var istemci = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+
+        var yanit = await istemci.GetAsync("/BagisciPanel/Profil");
+
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Contains("/Hesap/ErisimEngellendi", yanit.Headers.Location!.ToString());
+    }
+
+    [Fact]
+    public async Task Kurum_paneli_ildeki_uygun_bagisci_sayisini_gosterir()
+    {
+        var istemci = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+
+        var html = await istemci.GetStringAsync("/KurumPanel");
+
+        Assert.Contains("Bingöl'de uygun bağışçı", html);
+        Assert.DoesNotContain("Mehmet", html);   // KVKK: kurum bağışçı adlarını görmez
+    }
+
+    [Fact]
+    public async Task Kan_grubu_uyumluluk_sayfasi_herkese_acik()
+    {
+        var yanit = await YeniIstemci().GetAsync("/KanGrubu");
+
+        Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
+        Assert.Contains("genel verici", await yanit.Content.ReadAsStringAsync());
+    }
+
     // ---------------- Kayıt formları ----------------
 
     [Fact]
@@ -103,13 +175,14 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
             ["Eposta"] = "formdan@ornek.com",
             ["Parola"] = Parola,
             ["ParolaTekrar"] = Parola,
-            ["TcKimlikNo"] = "99920000001",
+            ["TcKimlikNo"] = TestVerisi.GecerliTc(2001),
             ["Ad"] = "Form",
             ["Soyad"] = "Kullanıcı",
             ["Telefon"] = "05550000077",
             ["DogumTarihi"] = "1998-04-15",
             ["Cinsiyet"] = "1",
-            ["Sehir"] = "Bingöl",
+            ["Kilo"] = "72",
+            ["Il"] = "Bingöl",
             ["KanGrubuId"] = "8",
             ["__RequestVerificationToken"] = token,
         }));
@@ -134,7 +207,7 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
             ["Parola"] = Parola,
             ["ParolaTekrar"] = Parola,
             ["HastaneAdi"] = "Form Hastanesi",
-            ["Sehir"] = "Elazığ",
+            ["Il"] = "Elazığ",
             ["Telefon"] = "04240000077",
             ["__RequestVerificationToken"] = token,
         }));
@@ -156,7 +229,7 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
             ["Parola"] = "sadeceharf",
             ["ParolaTekrar"] = "sadeceharf",
             ["HastaneAdi"] = "Zayıf Hastanesi",
-            ["Sehir"] = "Bingöl",
+            ["Il"] = "Bingöl",
             ["Telefon"] = "04260000077",
             ["__RequestVerificationToken"] = token,
         }));
@@ -210,8 +283,8 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         var eposta = $"bagisci{no}@ornek.com";
         using var scope = _uygulama.Services.CreateScope();
         var sonuc = await scope.ServiceProvider.GetRequiredService<IKimlikService>().BagisciKaydetAsync(new BagisciKayitIstegi(
-            eposta, Parola, $"999100{no:00000}", "Test", "Bağışçı", "05550000000",
-            new DateOnly(1995, 1, 1), Cinsiyet.Kadin, "Bingöl", 1));
+            eposta, Parola, TestVerisi.GecerliTc(1000 + no), "Test", "Bağışçı", "05550000000",
+            new DateOnly(1995, 1, 1), Cinsiyet.Kadin, 60, "Bingöl", 1));
         Assert.True(sonuc.Basarili, sonuc.Hata);
         return eposta;
     }

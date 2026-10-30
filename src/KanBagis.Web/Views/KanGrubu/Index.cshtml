@@ -1,0 +1,45 @@
+@using KanBagis.Web.Controllers
+@model List<KanGrubuUyumlulukSatiri>
+@{
+    ViewData["Title"] = "Kan grubu uyumluluğu";
+}
+
+<h1 class="h3 mb-1">Kan grubu uyumluluğu</h1>
+<p class="text-muted mb-4">Kırmızı kan hücresi (eritrosit) bağışında hangi kan grubunun kime kan verebileceği.</p>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Kan grubu</th>
+                <th>Kan verebileceği gruplar</th>
+                <th>Kan alabileceği gruplar</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var satir in Model)
+            {
+                <tr>
+                    <td class="fw-semibold text-danger text-nowrap">@satir.KanGrubu</td>
+                    <td>@string.Join(", ", satir.VerebilecegiGruplar)</td>
+                    <td>@string.Join(", ", satir.AlabilecegiGruplar)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-6">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6">0 Rh− · genel verici</h2>
+            <p class="small text-muted mb-0">Kanında A, B ve Rh antijeni bulunmaz; herkese kan verebilir. Acil durumlarda en çok aranan gruptur.</p>
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6">AB Rh+ · genel alıcı</h2>
+            <p class="small text-muted mb-0">Kanında A, B ve Rh antijeninin hepsi bulunur; herkesten kan alabilir ama yalnızca AB Rh+ gruba verebilir.</p>
+        </div></div>
+    </div>
+</div>

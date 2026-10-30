@@ -21,6 +21,7 @@ public class CrudTestleri : IDisposable
         Telefon = "05550000099",
         DogumTarihi = new DateOnly(1999, 1, 1),
         Cinsiyet = Cinsiyet.Kadin,
+        Kilo = 60,
         Sehir = "Bingöl",
         KanGrubuId = 1,
     };
@@ -79,15 +80,21 @@ public class CrudTestleri : IDisposable
     }
 
     [Fact]
-    public async Task Eslestirme_sorgusu_son_bagis_tarihini_dikkate_alir()
+    public async Task Aday_sorgusu_kan_grubu_ve_ile_gore_suzer_ve_son_bagisi_getirir()
     {
-        // Bingöl'deki 0 Rh- bağışçılar: Mehmet (son bağışı 01.07.2026) ve Burak (hiç bağış yok).
-        var hepsi = await _bagiscilar.UygunBagiscilariGetirAsync(8, "Bingöl", new DateTime(2026, 7, 16));
-        Assert.Equal(["Burak", "Mehmet"], hepsi.Select(b => b.Ad));
+        // Bingöl'deki 0 Rh- (Id 8) bağışçılar: Burak (hiç bağış yok) ve Mehmet (son bağış 01.07.2026).
+        var adaylar = await _bagiscilar.AdaylariGetirAsync([8], "Bingöl");
 
-        // Sınır 01.06.2026 olursa Mehmet o tarihten sonra bağış yaptığı için elenir.
-        var uygunlar = await _bagiscilar.UygunBagiscilariGetirAsync(8, "Bingöl", new DateTime(2026, 6, 1));
-        Assert.Equal(["Burak"], uygunlar.Select(b => b.Ad));
+        Assert.Equal(["Burak", "Mehmet"], adaylar.Select(a => a.Bagisci.Ad));
+        Assert.Null(adaylar[0].SonBagisTarihi);
+        Assert.Equal(new DateTime(2026, 7, 1, 11, 0, 0), adaylar[1].SonBagisTarihi);
+
+        // Birden çok kan grubu: 0 Rh- (8) ve A Rh+ (1) → Ayşe ve Ali de gelir.
+        var coklu = await _bagiscilar.AdaylariGetirAsync([1, 8], "Bingöl");
+        Assert.Equal(4, coklu.Count);
+
+        // Başka il: Elazığ'daki 0 Rh- yalnızca Elif.
+        Assert.Equal(["Elif"], (await _bagiscilar.AdaylariGetirAsync([8], "Elazığ")).Select(a => a.Bagisci.Ad));
     }
 
     [Fact]

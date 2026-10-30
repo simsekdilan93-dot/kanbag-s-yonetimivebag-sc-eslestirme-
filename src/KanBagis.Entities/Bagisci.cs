@@ -10,6 +10,9 @@ public class Bagisci : IEntity
     public string? Eposta { get; set; }
     public DateOnly DogumTarihi { get; set; }
     public Cinsiyet Cinsiyet { get; set; }
+    public int Kilo { get; set; }
+
+    /// <summary>İl adı; 81 il listesinden seçilir (eşleştirme bu alana göre yapılır).</summary>
     public string Sehir { get; set; } = string.Empty;
 
     public int KanGrubuId { get; set; }

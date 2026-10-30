@@ -1,3 +1,4 @@
+using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.Guvenlik;
 using KanBagis.Business.Kimlik;
 using KanBagis.Business.Paneller;
@@ -21,6 +22,8 @@ public static class DependencyInjection
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher());
         services.AddScoped<IKimlikService, KimlikService>();
+        services.AddSingleton<BagisUygunlukKurali>();
+        services.AddScoped<IBagisciService, BagisciService>();
         services.AddScoped<IPanelService, PanelService>();
         services.AddScoped<ITanimService, TanimService>();
 

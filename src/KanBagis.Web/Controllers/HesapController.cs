@@ -82,7 +82,7 @@ public class HesapController(IKimlikService kimlik, ITanimService tanimlar) : Co
 
         var sonuc = await kimlik.BagisciKaydetAsync(new BagisciKayitIstegi(
             model.Eposta, model.Parola, model.TcKimlikNo, model.Ad, model.Soyad, model.Telefon,
-            model.DogumTarihi!.Value, model.Cinsiyet!.Value, model.Sehir, model.KanGrubuId!.Value));
+            model.DogumTarihi!.Value, model.Cinsiyet!.Value, model.Kilo!.Value, model.Il, model.KanGrubuId!.Value));
 
         if (!sonuc.Basarili)
         {
@@ -107,7 +107,7 @@ public class HesapController(IKimlikService kimlik, ITanimService tanimlar) : Co
             return View(model);
 
         var sonuc = await kimlik.KurumKaydetAsync(new KurumKayitIstegi(
-            model.Eposta, model.Parola, model.HastaneAdi, model.Sehir, model.Telefon));
+            model.Eposta, model.Parola, model.HastaneAdi, model.Il, model.Telefon));
 
         if (!sonuc.Basarili)
         {

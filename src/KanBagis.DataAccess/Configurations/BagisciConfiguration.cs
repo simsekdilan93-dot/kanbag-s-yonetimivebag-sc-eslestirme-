@@ -10,7 +10,10 @@ public class BagisciConfiguration : IEntityTypeConfiguration<Bagisci>
     public void Configure(EntityTypeBuilder<Bagisci> builder)
     {
         builder.ToTable("Bagiscilar", t =>
-            t.HasCheckConstraint("CK_Bagisci_TcKimlikNo_11Hane", "length(TcKimlikNo) = 11"));
+        {
+            t.HasCheckConstraint("CK_Bagisci_TcKimlikNo_11Hane", "length(TcKimlikNo) = 11");
+            t.HasCheckConstraint("CK_Bagisci_Kilo", "Kilo BETWEEN 30 AND 250");
+        });
 
         builder.HasKey(b => b.Id);
         builder.Property(b => b.TcKimlikNo).IsRequired().HasMaxLength(11).IsFixedLength();

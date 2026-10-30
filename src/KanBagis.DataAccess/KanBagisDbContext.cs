@@ -24,6 +24,7 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
     {
         // Enum'lar veritabanında sayı yerine okunabilir metin olarak saklanır ("Acil", "Kabul"...).
         configurationBuilder.Properties<Cinsiyet>().HaveConversion<string>().HaveMaxLength(10);
+        configurationBuilder.Properties<AboGrubu>().HaveConversion<string>().HaveMaxLength(2);
         configurationBuilder.Properties<Aciliyet>().HaveConversion<string>().HaveMaxLength(10);
         configurationBuilder.Properties<TalepDurumu>().HaveConversion<string>().HaveMaxLength(15);
         configurationBuilder.Properties<BildirimYaniti>().HaveConversion<string>().HaveMaxLength(15);

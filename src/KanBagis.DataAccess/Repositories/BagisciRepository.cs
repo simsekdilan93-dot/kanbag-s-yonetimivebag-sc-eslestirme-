@@ -3,11 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KanBagis.DataAccess.Repositories;
 
+/// <summary>Eşleştirme adayı: bağışçı ve son bağış tarihi (uygunluk kuralı iş katmanında uygulanır).</summary>
+public record BagisciAdayi(Bagisci Bagisci, DateTime? SonBagisTarihi);
+
 public interface IBagisciRepository : IRepository<Bagisci>
 {
     Task<Bagisci?> TcIleGetirAsync(string tcKimlikNo);
-    Task<List<Bagisci>> UygunBagiscilariGetirAsync(int kanGrubuId, string sehir, DateTime sonBagisSiniri);
+    Task<List<BagisciAdayi>> AdaylariGetirAsync(IReadOnlyCollection<int> kanGrubuIdleri, string il);
     Task<DateTime?> SonBagisTarihiAsync(int bagisciId);
+    Task<int> BagisSayisiAsync(int bagisciId);
     Task<Bagisci?> KanGrubuylaGetirAsync(int id);
     Task<List<Bildirim>> BildirimleriGetirAsync(int bagisciId);
 }
@@ -19,21 +23,24 @@ public class BagisciRepository(KanBagisDbContext context) : EfRepository<Bagisci
              .FirstOrDefaultAsync(b => b.TcKimlikNo == tcKimlikNo);
 
     /// <summary>
-    /// Eşleştirme sorgusu: aynı kan grubundan, aynı şehirde olan ve
-    /// <paramref name="sonBagisSiniri"/> tarihinden sonra bağış yapmamış bağışçılar.
-    /// (KanGrubuId, Sehir) bileşik indeksini kullanır.
+    /// Eşleştirme adayları: verilen kan gruplarından birine sahip ve verilen ilde yaşayan bağışçılar,
+    /// son bağış tarihleriyle birlikte. (KanGrubuId, Sehir) bileşik indeksini kullanır.
+    /// Tek sorguda gelir: son bağış tarihi alt sorgu (MAX) olarak hesaplanır.
     /// </summary>
-    public Task<List<Bagisci>> UygunBagiscilariGetirAsync(int kanGrubuId, string sehir, DateTime sonBagisSiniri) =>
+    public Task<List<BagisciAdayi>> AdaylariGetirAsync(IReadOnlyCollection<int> kanGrubuIdleri, string il) =>
         Tablo.AsNoTracking()
-             .Where(b => b.KanGrubuId == kanGrubuId && b.Sehir == sehir)
-             .Where(b => !b.Bagislar.Any(x => x.BagisTarihi > sonBagisSiniri))
+             .Where(b => kanGrubuIdleri.Contains(b.KanGrubuId) && b.Sehir == il)
              .OrderBy(b => b.Ad)
+             .Select(b => new BagisciAdayi(b, b.Bagislar.Max(x => (DateTime?)x.BagisTarihi)))
              .ToListAsync();
 
     public Task<DateTime?> SonBagisTarihiAsync(int bagisciId) =>
         Context.Bagislar
                .Where(b => b.BagisciId == bagisciId)
                .MaxAsync(b => (DateTime?)b.BagisTarihi);
+
+    public Task<int> BagisSayisiAsync(int bagisciId) =>
+        Context.Bagislar.CountAsync(b => b.BagisciId == bagisciId);
 
     public Task<Bagisci?> KanGrubuylaGetirAsync(int id) =>
         Tablo.AsNoTracking()

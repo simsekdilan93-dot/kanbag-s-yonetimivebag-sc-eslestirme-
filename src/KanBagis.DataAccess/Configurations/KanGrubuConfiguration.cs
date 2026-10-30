@@ -15,6 +15,7 @@ public class KanGrubuConfiguration : IEntityTypeConfiguration<KanGrubu>
 
         // Aynı kan grubu iki kez eklenemez.
         builder.HasIndex(k => k.Ad).IsUnique();
+        builder.HasIndex(k => new { k.AboGrubu, k.RhPozitif }).IsUnique();
 
         builder.HasData(OrnekVeri.KanGruplari);
     }
