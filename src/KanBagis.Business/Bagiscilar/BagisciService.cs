@@ -17,13 +17,10 @@ public record IslemSonucu(bool Basarili, string? Hata = null)
     public static IslemSonucu Hatali(string hata) => new(false, hata);
 }
 
-public record UygunBagisci(Bagisci Bagisci, DateTime? SonBagisTarihi);
-
 public interface IBagisciService
 {
     Task<BagisciProfili?> ProfilGetirAsync(int bagisciId);
     Task<IslemSonucu> ProfilGuncelleAsync(int bagisciId, ProfilGuncellemeIstegi istek);
-    Task<List<UygunBagisci>> UygunBagiscilariBulAsync(int aliciKanGrubuId, string il);
 }
 
 /// <summary>Bağışçı Kaydı ve Kan Grubu Yönetimi modülünün iş servisi.</summary>
@@ -77,26 +74,5 @@ public sealed class BagisciService(
 
         await bagiscilar.GuncelleAsync(bagisci);
         return IslemSonucu.Tamam;
-    }
-
-    /// <summary>
-    /// Bir kan talebi için bugün bağış yapabilecek bağışçılar:
-    /// 1) Alıcıya kan verebilecek TÜM kan grupları bulunur (yalnızca aynı grup değil).
-    /// 2) Bu gruplardan ve aynı ildeki bağışçılar veritabanından çekilir.
-    /// 3) Her birine uygunluk kuralı (yaş, kilo, son bağış) uygulanır.
-    /// </summary>
-    public async Task<List<UygunBagisci>> UygunBagiscilariBulAsync(int aliciKanGrubuId, string il)
-    {
-        var tumGruplar = await kanGruplari.TumunuGetirAsync();
-        var alici = tumGruplar.SingleOrDefault(k => k.Id == aliciKanGrubuId);
-        if (alici is null) return [];
-
-        var vericiIdleri = KanGrubuUyumlulugu.VerebilecekGruplar(alici, tumGruplar).Select(k => k.Id).ToList();
-        var adaylar = await bagiscilar.AdaylariGetirAsync(vericiIdleri, il);
-
-        return adaylar
-            .Where(a => uygunlukKurali.Degerlendir(a.Bagisci, a.SonBagisTarihi).Uygun)
-            .Select(a => new UygunBagisci(a.Bagisci, a.SonBagisTarihi))
-            .ToList();
     }
 }

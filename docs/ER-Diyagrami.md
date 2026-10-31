@@ -55,7 +55,9 @@ erDiagram
         int UniteSayisi "> 0 (CHECK)"
         string Aciliyet "Normal / Acil"
         string Durum "Acik / Karsilandi / Iptal"
+        string Aciklama "en fazla 300"
         datetime OlusturmaTarihi
+        datetime KapanisTarihi "Durum<>Acik ise dolu (CHECK)"
     }
 
     BAGIS {
@@ -74,6 +76,7 @@ erDiagram
         datetime GonderimTarihi
         bool Okundu
         string Yanit "Beklemede / Kabul / Red"
+        datetime YanitTarihi "Yanit<>Beklemede ise dolu (CHECK)"
     }
 
     KULLANICI {

@@ -1,0 +1,69 @@
+@model TalepOlusturViewModel
+@using KanBagis.Business.Talepler
+@{
+    ViewData["Title"] = "Yeni kan talebi";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="h3 mb-1">Yeni kan talebi</h1>
+        <p class="text-muted mb-4">
+            Talep oluşturulduğunda sistem, bu kan grubuna <a asp-controller="KanGrubu" asp-action="Index">kan verebilecek</a>
+            ve bugün bağış koşullarını sağlayan bağışçıları en yakından başlayarak bulur ve bildirim gönderir.
+        </p>
+
+        <form asp-action="Yeni" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            @if (ViewData["AcikTalepId"] is int acikId)
+            {
+                <p class="mt-n2"><a asp-action="Detay" asp-route-id="@acikId">Açık talebe git →</a></p>
+            }
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label asp-for="KanGrubuId" class="form-label"></label>
+                    <select asp-for="KanGrubuId" asp-items="Model.KanGruplari" class="form-select">
+                        <option value="">Seçin</option>
+                    </select>
+                    <span asp-validation-for="KanGrubuId" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="UniteSayisi" class="form-label"></label>
+                    <input asp-for="UniteSayisi" type="number" class="form-control" />
+                    <span asp-validation-for="UniteSayisi" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <span class="form-label d-block">Aciliyet</span>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="Aciliyet" value="@Aciliyet.Normal" id="aciliyetNormal" />
+                        <label class="form-check-label" for="aciliyetNormal">
+                            Normal: @AciliyetKurallari.NormalYaricapKm km içindeki bağışçılar, ünite başına @AciliyetKurallari.NormalBildirimCarpani bildirim
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" asp-for="Aciliyet" value="@Aciliyet.Acil" id="aciliyetAcil" />
+                        <label class="form-check-label" for="aciliyetAcil">
+                            <strong class="text-danger">Acil</strong>: @AciliyetKurallari.AcilYaricapKm km içindeki bağışçılar, ünite başına @AciliyetKurallari.AcilBildirimCarpani bildirim
+                        </label>
+                    </div>
+                    <span asp-validation-for="Aciliyet" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Aciklama" class="form-label"></label>
+                    <textarea asp-for="Aciklama" class="form-control" rows="2" placeholder="Örn. Ameliyat için, servis: Genel Cerrahi"></textarea>
+                    <div class="form-text">Hasta adı gibi kişisel bilgi yazmayın; bu metin bağışçılara gösterilmez.</div>
+                    <span asp-validation-for="Aciklama" class="text-danger"></span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-danger">Talebi oluştur ve bildirim gönder</button>
+            <a asp-controller="KurumPanel" asp-action="Index" class="btn btn-link">Vazgeç</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

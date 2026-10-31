@@ -7,8 +7,8 @@ Kan bağışçılarını, hastanelerin kan taleplerini ve kan stoğunu tek bir y
 - ✅ Kayıt ve giriş (bağışçı / kurum), rol bazlı paneller
 - ✅ Bağışçı profili, bağış uygunluk kuralı (yaş, kilo, 90/120 gün), kan grubu uyumluluğu
 - Kan grubu bazında stok takibi
-- Hastane kan talebi oluşturma (normal / acil)
-- Talebe uygun bağışçılara bildirim gönderme ve yanıt takibi
+- ✅ Hastane kan talebi oluşturma (normal / acil)
+- ✅ Kan grubu uyumluluğu ve konuma (mesafeye) göre eşleştirme, bildirim gönderme ve yanıt takibi
 
 ## Teknolojiler
 
@@ -35,11 +35,11 @@ docs/
 ├── ER-Diyagrami.md        Veri modeli
 ├── Mimari.md              Katmanlı mimari şeması
 ├── Guvenlik-Notu.md       Kimlik doğrulama ve yetkilendirme güvenlik notu
-├── moduller/              Modül açıklamaları (Bağışçı ve Kan Grubu)
+├── moduller/              Modül açıklamaları (Bağışçı ve Kan Grubu, Talep ve Eşleştirme)
 └── db/                    SQL şema, örnek sorgular, indeks açıklamaları
 ```
 
-Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md)
+Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md)
 
 ## Çalıştırma
 
@@ -68,3 +68,4 @@ dotnet test
 - [x] **Hafta 4:** Veritabanı şeması (migration), ilişkiler/kısıtlar/indeksler, sentetik örnek veri, CRUD veri erişim katmanı, testler
 - [x] **Hafta 5:** Kayıt/giriş, PBKDF2 parola hash'i + tuz, hesap kilitleme, çerez oturumu, rol tabanlı erişim (Bağışçı/Kurum), güvenlik notu
 - [x] **Hafta 6:** Bağışçı kaydı ve kan grubu yönetimi: ABO/Rh modeli ve uyumluluk, bağış uygunluk kuralı, TC algoritması, 81 il listesi, profil düzenleme (sahiplik kontrolü), kan grubu kilidi
+- [x] **Hafta 7:** Talep ve grup/konum eşleştirme: talep açma, uyumlu + uygun bağışçıları mesafeye göre sıralama (Haversine), aciliyete göre yarıçap ve bildirim kotası, Kabul/Red yanıtı, kurumun kabul edenleri görmesi

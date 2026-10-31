@@ -1,5 +1,6 @@
 using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.Paneller;
+using KanBagis.Business.Talepler;
 using KanBagis.Business.Tanimlar;
 using KanBagis.Entities;
 using KanBagis.Web.Guvenlik;
@@ -20,6 +21,7 @@ namespace KanBagis.Web.Controllers;
 public class BagisciPanelController(
     IPanelService paneller,
     IBagisciService bagiscilar,
+    IBildirimService bildirimServisi,
     ITanimService tanimlar) : Controller
 {
     /// <summary>
@@ -34,6 +36,21 @@ public class BagisciPanelController(
 
         var panel = await paneller.BagisciPaneliAsync(bagisciId);
         return panel is null ? NotFound() : View(panel);
+    }
+
+    /// <summary>Bildirime Kabul/Red yanıtı. Bildirimin bu bağışçıya ait olduğu iş katmanında kontrol edilir.</summary>
+    [HttpPost]
+    public async Task<IActionResult> Yanitla(int bildirimId, BildirimYaniti yanit)
+    {
+        if (OturumdakiBagisciId is not { } bagisciId) return Forbid();
+
+        var sonuc = await bildirimServisi.YanitlaAsync(bagisciId, bildirimId, yanit);
+        TempData[sonuc.Basarili ? "Mesaj" : "Hata"] = sonuc.Basarili
+            ? (yanit == BildirimYaniti.Kabul
+                ? "Teşekkürler! Talebi kabul ettiniz. Hastane sizinle iletişime geçecek."
+                : "Yanıtınız kaydedildi.")
+            : sonuc.Hata;
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpGet]

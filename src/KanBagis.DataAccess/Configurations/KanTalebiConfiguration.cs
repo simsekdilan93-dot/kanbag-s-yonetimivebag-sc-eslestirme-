@@ -14,9 +14,16 @@ public class KanTalebiConfiguration : IEntityTypeConfiguration<KanTalebi>
             t.HasCheckConstraint("CK_KanTalebi_UniteSayisi_Pozitif", "UniteSayisi > 0");
             t.HasCheckConstraint("CK_KanTalebi_Durum", "Durum IN ('Acik', 'Karsilandi', 'Iptal')");
             t.HasCheckConstraint("CK_KanTalebi_Aciliyet", "Aciliyet IN ('Normal', 'Acil')");
+            // Açık talebin kapanış tarihi olmaz; kapanan talebin mutlaka olur.
+            t.HasCheckConstraint("CK_KanTalebi_KapanisTarihi",
+                "(Durum = 'Acik' AND KapanisTarihi IS NULL) OR (Durum <> 'Acik' AND KapanisTarihi IS NOT NULL)");
         });
 
         builder.HasKey(t => t.Id);
+        builder.Property(t => t.Aciklama).HasMaxLength(300);
+
+        // "Bu hastanenin bu kan grubu için açık talebi var mı?" (mükerrer talep kuralı)
+        builder.HasIndex(t => new { t.HastaneId, t.KanGrubuId, t.Durum });
 
         // "Açık talepleri kan grubuna göre listele" sorgusu için.
         builder.HasIndex(t => new { t.Durum, t.KanGrubuId });

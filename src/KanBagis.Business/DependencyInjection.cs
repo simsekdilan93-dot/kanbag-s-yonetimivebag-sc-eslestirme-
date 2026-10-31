@@ -2,6 +2,7 @@ using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.Guvenlik;
 using KanBagis.Business.Kimlik;
 using KanBagis.Business.Paneller;
+using KanBagis.Business.Talepler;
 using KanBagis.Business.Tanimlar;
 using KanBagis.DataAccess;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,9 @@ public static class DependencyInjection
         services.AddScoped<IKimlikService, KimlikService>();
         services.AddSingleton<BagisUygunlukKurali>();
         services.AddScoped<IBagisciService, BagisciService>();
+        services.AddScoped<IEslestirmeService, EslestirmeService>();
+        services.AddScoped<ITalepService, TalepService>();
+        services.AddScoped<IBildirimService, BildirimService>();
         services.AddScoped<IPanelService, PanelService>();
         services.AddScoped<ITanimService, TanimService>();
 

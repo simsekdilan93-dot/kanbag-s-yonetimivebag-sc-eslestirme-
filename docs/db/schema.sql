@@ -455,3 +455,132 @@ COMMIT;
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261030065949_BagisciKiloVeKanGrubuAboRh', '10.0.13');
 
+BEGIN TRANSACTION;
+DROP INDEX "IX_KanTalepleri_HastaneId";
+
+ALTER TABLE "KanTalepleri" ADD "Aciklama" TEXT NULL;
+
+ALTER TABLE "KanTalepleri" ADD "KapanisTarihi" TEXT NULL;
+
+ALTER TABLE "Bildirimler" ADD "YanitTarihi" TEXT NULL;
+
+UPDATE "Bildirimler" SET "YanitTarihi" = '2026-10-10 09:10:00'
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "YanitTarihi" = '2026-10-10 11:40:00'
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "YanitTarihi" = NULL
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "YanitTarihi" = NULL
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "YanitTarihi" = NULL
+WHERE "Id" = 5;
+SELECT changes();
+
+
+UPDATE "KanTalepleri" SET "Aciklama" = NULL, "KapanisTarihi" = NULL
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "KanTalepleri" SET "Aciklama" = NULL, "KapanisTarihi" = NULL
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "KanTalepleri" SET "Aciklama" = NULL, "KapanisTarihi" = '2026-09-22 16:00:00'
+WHERE "Id" = 3;
+SELECT changes();
+
+
+CREATE INDEX "IX_KanTalepleri_HastaneId_KanGrubuId_Durum" ON "KanTalepleri" ("HastaneId", "KanGrubuId", "Durum");
+
+CREATE INDEX "IX_Bildirimler_BagisciId_Yanit" ON "Bildirimler" ("BagisciId", "Yanit");
+
+CREATE TABLE "ef_temp_KanTalepleri" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_KanTalepleri" PRIMARY KEY AUTOINCREMENT,
+    "Aciklama" TEXT NULL,
+    "Aciliyet" TEXT NOT NULL,
+    "Durum" TEXT NOT NULL,
+    "HastaneId" INTEGER NOT NULL,
+    "KanGrubuId" INTEGER NOT NULL,
+    "KapanisTarihi" TEXT NULL,
+    "OlusturmaTarihi" TEXT NOT NULL,
+    "UniteSayisi" INTEGER NOT NULL,
+    CONSTRAINT "CK_KanTalebi_Aciliyet" CHECK (Aciliyet IN ('Normal', 'Acil')),
+    CONSTRAINT "CK_KanTalebi_Durum" CHECK (Durum IN ('Acik', 'Karsilandi', 'Iptal')),
+    CONSTRAINT "CK_KanTalebi_KapanisTarihi" CHECK ((Durum = 'Acik' AND KapanisTarihi IS NULL) OR (Durum <> 'Acik' AND KapanisTarihi IS NOT NULL)),
+    CONSTRAINT "CK_KanTalebi_UniteSayisi_Pozitif" CHECK (UniteSayisi > 0),
+    CONSTRAINT "FK_KanTalepleri_Hastaneler_HastaneId" FOREIGN KEY ("HastaneId") REFERENCES "Hastaneler" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_KanTalepleri_KanGruplari_KanGrubuId" FOREIGN KEY ("KanGrubuId") REFERENCES "KanGruplari" ("Id") ON DELETE RESTRICT
+);
+
+INSERT INTO "ef_temp_KanTalepleri" ("Id", "Aciklama", "Aciliyet", "Durum", "HastaneId", "KanGrubuId", "KapanisTarihi", "OlusturmaTarihi", "UniteSayisi")
+SELECT "Id", "Aciklama", "Aciliyet", "Durum", "HastaneId", "KanGrubuId", "KapanisTarihi", "OlusturmaTarihi", "UniteSayisi"
+FROM "KanTalepleri";
+
+CREATE TABLE "ef_temp_Bildirimler" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Bildirimler" PRIMARY KEY AUTOINCREMENT,
+    "BagisciId" INTEGER NOT NULL,
+    "GonderimTarihi" TEXT NOT NULL,
+    "KanTalebiId" INTEGER NOT NULL,
+    "Mesaj" TEXT NOT NULL,
+    "Okundu" INTEGER NOT NULL,
+    "Yanit" TEXT NOT NULL,
+    "YanitTarihi" TEXT NULL,
+    CONSTRAINT "CK_Bildirim_Yanit" CHECK (Yanit IN ('Beklemede', 'Kabul', 'Red')),
+    CONSTRAINT "CK_Bildirim_YanitTarihi" CHECK ((Yanit = 'Beklemede' AND YanitTarihi IS NULL) OR (Yanit <> 'Beklemede' AND YanitTarihi IS NOT NULL)),
+    CONSTRAINT "FK_Bildirimler_Bagiscilar_BagisciId" FOREIGN KEY ("BagisciId") REFERENCES "Bagiscilar" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_Bildirimler_KanTalepleri_KanTalebiId" FOREIGN KEY ("KanTalebiId") REFERENCES "KanTalepleri" ("Id") ON DELETE CASCADE
+);
+
+INSERT INTO "ef_temp_Bildirimler" ("Id", "BagisciId", "GonderimTarihi", "KanTalebiId", "Mesaj", "Okundu", "Yanit", "YanitTarihi")
+SELECT "Id", "BagisciId", "GonderimTarihi", "KanTalebiId", "Mesaj", "Okundu", "Yanit", "YanitTarihi"
+FROM "Bildirimler";
+
+COMMIT;
+
+PRAGMA foreign_keys = 0;
+
+BEGIN TRANSACTION;
+DROP TABLE "KanTalepleri";
+
+ALTER TABLE "ef_temp_KanTalepleri" RENAME TO "KanTalepleri";
+
+DROP TABLE "Bildirimler";
+
+ALTER TABLE "ef_temp_Bildirimler" RENAME TO "Bildirimler";
+
+COMMIT;
+
+PRAGMA foreign_keys = 1;
+
+BEGIN TRANSACTION;
+CREATE INDEX "IX_KanTalepleri_Durum_KanGrubuId" ON "KanTalepleri" ("Durum", "KanGrubuId");
+
+CREATE INDEX "IX_KanTalepleri_HastaneId_KanGrubuId_Durum" ON "KanTalepleri" ("HastaneId", "KanGrubuId", "Durum");
+
+CREATE INDEX "IX_KanTalepleri_KanGrubuId" ON "KanTalepleri" ("KanGrubuId");
+
+CREATE UNIQUE INDEX "IX_Bildirimler_BagisciId_KanTalebiId" ON "Bildirimler" ("BagisciId", "KanTalebiId");
+
+CREATE INDEX "IX_Bildirimler_BagisciId_Yanit" ON "Bildirimler" ("BagisciId", "Yanit");
+
+CREATE INDEX "IX_Bildirimler_KanTalebiId" ON "Bildirimler" ("KanTalebiId");
+
+COMMIT;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261031083903_TalepEslestirmeVeYanit', '10.0.13');
+

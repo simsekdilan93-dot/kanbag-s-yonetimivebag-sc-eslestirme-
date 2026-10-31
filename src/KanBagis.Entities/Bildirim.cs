@@ -8,6 +8,7 @@ public class Bildirim : IEntity
     public DateTime GonderimTarihi { get; set; }
     public bool Okundu { get; set; }
     public BildirimYaniti Yanit { get; set; } = BildirimYaniti.Beklemede;
+    public DateTime? YanitTarihi { get; set; }
 
     public int BagisciId { get; set; }
     public Bagisci Bagisci { get; set; } = null!;

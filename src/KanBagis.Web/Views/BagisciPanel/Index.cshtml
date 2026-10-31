@@ -6,11 +6,6 @@
     var uygunluk = profil.Uygunluk;
 }
 
-@if (TempData["Mesaj"] is string mesaj)
-{
-    <div class="alert alert-success" role="status">@mesaj</div>
-}
-
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <h1 class="h3 mb-0">Merhaba, @b.Ad</h1>
     <a asp-action="Profil" class="btn btn-outline-secondary btn-sm">Profilimi düzenle</a>
@@ -61,30 +56,63 @@
     </div>
 </div>
 
-<h2 class="h5">Bildirimler</h2>
+<h2 class="h5">
+    Kan çağrıları
+    @if (Model.BekleyenSayisi > 0)
+    {
+        <span class="badge text-bg-danger align-middle">@Model.BekleyenSayisi yanıt bekliyor</span>
+    }
+</h2>
 @if (Model.Bildirimler.Count == 0)
 {
     <p class="text-muted">Henüz bildiriminiz yok. Kan grubunuza uygun bir talep açıldığında burada görünecek.</p>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr><th>Tarih</th><th>Hastane</th><th>Kan grubu</th><th>Mesaj</th><th>Yanıt</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var bildirim in Model.Bildirimler)
-                {
-                    <tr>
-                        <td>@bildirim.GonderimTarihi.ToString("dd.MM.yyyy HH:mm")</td>
-                        <td>@bildirim.KanTalebi.Hastane.Ad</td>
-                        <td>@bildirim.KanTalebi.KanGrubu.Ad</td>
-                        <td>@bildirim.Mesaj</td>
-                        <td>@bildirim.Yanit</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="list-group">
+        @foreach (var bildirim in Model.Bildirimler)
+        {
+            var talep = bildirim.KanTalebi;
+            var yanitlanabilir = BagisciPaneli.YanitlanabilirMi(bildirim);
+            <div class="list-group-item @(yanitlanabilir && talep.Aciliyet == Aciliyet.Acil ? "list-group-item-danger" : "")">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <div>
+                        <div class="fw-semibold">
+                            @talep.Hastane.Ad (@talep.Hastane.Sehir) · @talep.KanGrubu.Ad
+                            @if (talep.Aciliyet == Aciliyet.Acil)
+                            {
+                                <span class="badge text-bg-danger">ACİL</span>
+                            }
+                            @if (!bildirim.Okundu)
+                            {
+                                <span class="badge text-bg-primary">Yeni</span>
+                            }
+                        </div>
+                        <div class="small">@bildirim.Mesaj</div>
+                        <div class="small text-muted">
+                            @bildirim.GonderimTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+                            @if (talep.Durum != TalepDurumu.Acik)
+                            {
+                                <span> · talep @Gorunum.Durum(talep.Durum).ToLower()</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="text-nowrap align-self-center">
+                        @if (yanitlanabilir)
+                        {
+                            <form asp-action="Yanitla" method="post" class="d-inline">
+                                <input type="hidden" name="bildirimId" value="@bildirim.Id" />
+                                <button type="submit" name="yanit" value="@BildirimYaniti.Kabul" class="btn btn-success btn-sm" disabled="@(!uygunluk.Uygun)">Gelebilirim</button>
+                                <button type="submit" name="yanit" value="@BildirimYaniti.Red" class="btn btn-outline-secondary btn-sm">Gelemem</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="small @(bildirim.Yanit == BildirimYaniti.Kabul ? "text-success fw-semibold" : "text-muted")">@Gorunum.Yanit(bildirim.Yanit)</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 }

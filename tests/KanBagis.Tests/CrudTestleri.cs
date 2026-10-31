@@ -83,18 +83,21 @@ public class CrudTestleri : IDisposable
     public async Task Aday_sorgusu_kan_grubu_ve_ile_gore_suzer_ve_son_bagisi_getirir()
     {
         // Bingöl'deki 0 Rh- (Id 8) bağışçılar: Burak (hiç bağış yok) ve Mehmet (son bağış 01.07.2026).
-        var adaylar = await _bagiscilar.AdaylariGetirAsync([8], "Bingöl");
+        var adaylar = await _bagiscilar.AdaylariGetirAsync([8], ["Bingöl"]);
 
         Assert.Equal(["Burak", "Mehmet"], adaylar.Select(a => a.Bagisci.Ad));
         Assert.Null(adaylar[0].SonBagisTarihi);
         Assert.Equal(new DateTime(2026, 7, 1, 11, 0, 0), adaylar[1].SonBagisTarihi);
 
         // Birden çok kan grubu: 0 Rh- (8) ve A Rh+ (1) → Ayşe ve Ali de gelir.
-        var coklu = await _bagiscilar.AdaylariGetirAsync([1, 8], "Bingöl");
+        var coklu = await _bagiscilar.AdaylariGetirAsync([1, 8], ["Bingöl"]);
         Assert.Equal(4, coklu.Count);
 
+        // Birden çok il: Bingöl + Elazığ'daki 0 Rh- → Burak, Elif, Mehmet.
+        Assert.Equal(3, (await _bagiscilar.AdaylariGetirAsync([8], ["Bingöl", "Elazığ"])).Count);
+
         // Başka il: Elazığ'daki 0 Rh- yalnızca Elif.
-        Assert.Equal(["Elif"], (await _bagiscilar.AdaylariGetirAsync([8], "Elazığ")).Select(a => a.Bagisci.Ad));
+        Assert.Equal(["Elif"], (await _bagiscilar.AdaylariGetirAsync([8], ["Elazığ"])).Select(a => a.Bagisci.Ad));
     }
 
     [Fact]

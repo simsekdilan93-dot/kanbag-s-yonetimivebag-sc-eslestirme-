@@ -1,0 +1,109 @@
+@model KanBagis.Business.Talepler.TalepDetayi
+@{
+    var t = Model.Talep;
+    ViewData["Title"] = $"Talep #{t.Id}";
+    var acik = t.Durum == TalepDurumu.Acik;
+    var ilerleme = Math.Min(100, Model.KabulSayisi * 100 / t.UniteSayisi);
+}
+
+<p><a asp-controller="KurumPanel" asp-action="Index">← Kurum paneli</a></p>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+    <h1 class="h3 mb-0">Talep #@t.Id · <span class="text-danger">@t.KanGrubu.Ad</span> · @t.UniteSayisi ünite</h1>
+    <span class="badge @Gorunum.DurumRozeti(t.Durum)">@Gorunum.Durum(t.Durum)</span>
+    @if (t.Aciliyet == Aciliyet.Acil)
+    {
+        <span class="badge text-bg-danger">ACİL</span>
+    }
+</div>
+<p class="text-muted">
+    @t.OlusturmaTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+    @if (t.KapanisTarihi is { } kapanis)
+    {
+        <span> · kapanış @kapanis.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</span>
+    }
+    @if (!string.IsNullOrEmpty(t.Aciklama))
+    {
+        <span> · @t.Aciklama</span>
+    }
+</p>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Bildirim gönderilen</div>
+        <div class="fs-4">@t.Bildirimler.Count</div>
+    </div></div></div>
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Kabul eden</div>
+        <div class="fs-4 text-success">@Model.KabulSayisi <span class="fs-6 text-muted">/ @t.UniteSayisi ünite</span></div>
+        <div class="progress mt-1" role="progressbar" aria-label="Kabul oranı" aria-valuenow="@ilerleme" aria-valuemin="0" aria-valuemax="100" style="height: 6px">
+            <div class="progress-bar bg-success" style="width: @ilerleme%"></div>
+        </div>
+    </div></div></div>
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Yanıt bekleyen</div>
+        <div class="fs-4">@Model.BekleyenSayisi</div>
+    </div></div></div>
+    <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body">
+        <div class="text-muted small">Reddeden</div>
+        <div class="fs-4">@Model.RedSayisi</div>
+    </div></div></div>
+</div>
+
+<h2 class="h5">Kabul eden bağışçılar</h2>
+<p class="small text-muted">
+    İletişim bilgileri yalnızca talebi <strong>kabul eden</strong> bağışçılar için gösterilir (açık rıza).
+    Yanıt bekleyen ya da reddeden bağışçıların kimliği gösterilmez.
+</p>
+@if (Model.KabulEdenler.Count == 0)
+{
+    <p class="text-muted">Henüz kabul eden bağışçı yok.</p>
+}
+else
+{
+    <div class="table-responsive mb-4">
+        <table class="table align-middle">
+            <thead>
+                <tr><th>Ad soyad</th><th>Telefon</th><th>Kan grubu</th><th>İl</th><th>Uzaklık</th><th>Kabul</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var k in Model.KabulEdenler)
+                {
+                    <tr>
+                        <td>@k.AdSoyad</td>
+                        <td><a href="tel:@k.Telefon">@k.Telefon</a></td>
+                        <td>@k.KanGrubu</td>
+                        <td>@k.Il</td>
+                        <td>@Gorunum.Mesafe(k.MesafeKm)</td>
+                        <td>@k.YanitTarihi.ToLocalTime().ToString("dd.MM HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (acik)
+{
+    <div class="card">
+        <div class="card-body d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div>
+                <div class="fw-semibold">Arama alanında bildirim gönderilmemiş @Model.BildirilmemisUygunAdaySayisi uygun bağışçı var.</div>
+                <div class="small text-muted">Daha önce bildirim gönderilen kişilere tekrar gönderilmez.</div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <form asp-action="DahaFazlaBildir" asp-route-id="@t.Id" method="post">
+                    <button type="submit" class="btn btn-outline-danger" disabled="@(Model.BildirilmemisUygunAdaySayisi == 0)">Daha fazla bağışçıya bildir</button>
+                </form>
+                <form asp-action="Kapat" asp-route-id="@t.Id" method="post">
+                    <input type="hidden" name="durum" value="@TalepDurumu.Karsilandi" />
+                    <button type="submit" class="btn btn-success">Karşılandı</button>
+                </form>
+                <form asp-action="Kapat" asp-route-id="@t.Id" method="post">
+                    <input type="hidden" name="durum" value="@TalepDurumu.Iptal" />
+                    <button type="submit" class="btn btn-outline-secondary">İptal et</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}

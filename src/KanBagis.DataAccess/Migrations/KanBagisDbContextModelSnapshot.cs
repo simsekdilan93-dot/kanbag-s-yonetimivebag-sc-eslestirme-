@@ -321,6 +321,9 @@ namespace KanBagis.DataAccess.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("YanitTarihi")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("KanTalebiId");
@@ -328,9 +331,13 @@ namespace KanBagis.DataAccess.Migrations
                     b.HasIndex("BagisciId", "KanTalebiId")
                         .IsUnique();
 
+                    b.HasIndex("BagisciId", "Yanit");
+
                     b.ToTable("Bildirimler", null, t =>
                         {
                             t.HasCheckConstraint("CK_Bildirim_Yanit", "Yanit IN ('Beklemede', 'Kabul', 'Red')");
+
+                            t.HasCheckConstraint("CK_Bildirim_YanitTarihi", "(Yanit = 'Beklemede' AND YanitTarihi IS NULL) OR (Yanit <> 'Beklemede' AND YanitTarihi IS NOT NULL)");
                         });
 
                     b.HasData(
@@ -342,7 +349,8 @@ namespace KanBagis.DataAccess.Migrations
                             KanTalebiId = 1,
                             Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.",
                             Okundu = true,
-                            Yanit = "Kabul"
+                            Yanit = "Kabul",
+                            YanitTarihi = new DateTime(2026, 10, 10, 9, 10, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
@@ -352,7 +360,8 @@ namespace KanBagis.DataAccess.Migrations
                             KanTalebiId = 1,
                             Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.",
                             Okundu = true,
-                            Yanit = "Red"
+                            Yanit = "Red",
+                            YanitTarihi = new DateTime(2026, 10, 10, 11, 40, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
@@ -616,6 +625,10 @@ namespace KanBagis.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Aciklama")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Aciliyet")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -632,6 +645,9 @@ namespace KanBagis.DataAccess.Migrations
                     b.Property<int>("KanGrubuId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime?>("KapanisTarihi")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("OlusturmaTarihi")
                         .HasColumnType("TEXT");
 
@@ -640,17 +656,19 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HastaneId");
-
                     b.HasIndex("KanGrubuId");
 
                     b.HasIndex("Durum", "KanGrubuId");
+
+                    b.HasIndex("HastaneId", "KanGrubuId", "Durum");
 
                     b.ToTable("KanTalepleri", null, t =>
                         {
                             t.HasCheckConstraint("CK_KanTalebi_Aciliyet", "Aciliyet IN ('Normal', 'Acil')");
 
                             t.HasCheckConstraint("CK_KanTalebi_Durum", "Durum IN ('Acik', 'Karsilandi', 'Iptal')");
+
+                            t.HasCheckConstraint("CK_KanTalebi_KapanisTarihi", "(Durum = 'Acik' AND KapanisTarihi IS NULL) OR (Durum <> 'Acik' AND KapanisTarihi IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_KanTalebi_UniteSayisi_Pozitif", "UniteSayisi > 0");
                         });
@@ -683,6 +701,7 @@ namespace KanBagis.DataAccess.Migrations
                             Durum = "Karsilandi",
                             HastaneId = 1,
                             KanGrubuId = 3,
+                            KapanisTarihi = new DateTime(2026, 9, 22, 16, 0, 0, 0, DateTimeKind.Utc),
                             OlusturmaTarihi = new DateTime(2026, 9, 20, 11, 15, 0, 0, DateTimeKind.Utc),
                             UniteSayisi = 1
                         });

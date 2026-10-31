@@ -116,14 +116,14 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
             ["Id"] = "1",
             ["BagisciId"] = "1",
             ["Telefon"] = "05009999999",
-            ["Il"] = "Van",
+            ["Il"] = "Edirne",   // Van'dan uzak: uçtan uca talep testiyle (Van) çakışmasın
             ["Kilo"] = "65",
             ["KanGrubuId"] = "1",
             ["__RequestVerificationToken"] = token,
         }));
 
         Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
-        Assert.Contains("Van", await istemci.GetStringAsync("/BagisciPanel"));   // kendi kaydı değişti
+        Assert.Contains("Edirne", await istemci.GetStringAsync("/BagisciPanel"));   // kendi kaydı değişti
 
         using var scope = _uygulama.Services.CreateScope();
         var ayse = await scope.ServiceProvider.GetRequiredService<IBagisciService>().ProfilGetirAsync(1);
@@ -160,6 +160,97 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
 
         Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
         Assert.Contains("genel verici", await yanit.Content.ReadAsStringAsync());
+    }
+
+    // ---------------- Talep ve eşleştirme: uçtan uca ----------------
+
+    [Fact]
+    public async Task Talep_bildirim_kabul_akisi_uctan_uca()
+    {
+        // Van'da örnek veri yok: yalnızca bu testin bağışçısı eşleşir.
+        var bagisciEposta = await BagisciOlusturAsync(il: "Van", kanGrubuId: 1);   // A Rh+
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync(il: "Van"));
+
+        // 1) Kurum formdan talep açar.
+        var token = await TokenAlAsync(kurum, "/KurumTalep/Yeni");
+        var yanit = await kurum.PostAsync("/KurumTalep/Yeni", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["KanGrubuId"] = "1",
+            ["UniteSayisi"] = "1",
+            ["Aciliyet"] = "Normal",
+            ["__RequestVerificationToken"] = token,
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        var detayAdresi = yanit.Headers.Location!.ToString();
+        Assert.StartsWith("/KurumTalep/Detay/", detayAdresi);
+        var ilkDetay = await kurum.GetStringAsync(detayAdresi);
+        Assert.Contains("1 uygun bağışçıya bildirim gönderildi", ilkDetay);
+
+        // 2) Bağışçı panelinde bildirimi görür ve kabul eder.
+        var bagisci = await GirisYapmisIstemciAsync(bagisciEposta);
+        var panel = await bagisci.GetStringAsync("/BagisciPanel");
+        Assert.Contains("Gelebilirim", panel);
+        var bildirimId = Regex.Match(panel, "name=\"bildirimId\" value=\"(\\d+)\"").Groups[1].Value;
+
+        var kabul = await bagisci.PostAsync("/BagisciPanel/Yanitla", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["bildirimId"] = bildirimId,
+            ["yanit"] = "Kabul",
+            ["__RequestVerificationToken"] = await TokenAlAsync(bagisci, "/BagisciPanel"),
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, kabul.StatusCode);
+        Assert.Contains("Talebi kabul ettiniz", await bagisci.GetStringAsync("/BagisciPanel"));
+
+        // 3) Kurum, kabul eden bağışçının telefonunu görür.
+        var detay = await kurum.GetStringAsync(detayAdresi);
+        Assert.Contains("05550000000", detay);
+        Assert.Contains("Test Bağışçı", detay);
+    }
+
+    [Fact]
+    public async Task Baska_kurumun_talep_detayi_404()
+    {
+        var sahip = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var token = await TokenAlAsync(sahip, "/KurumTalep/Yeni");
+        var yanit = await sahip.PostAsync("/KurumTalep/Yeni", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["KanGrubuId"] = "6", ["UniteSayisi"] = "1", ["Aciliyet"] = "Normal", ["__RequestVerificationToken"] = token,
+        }));
+        var detayAdresi = yanit.Headers.Location!.ToString();
+
+        var baskaKurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+
+        Assert.Equal(HttpStatusCode.NotFound, (await baskaKurum.GetAsync(detayAdresi)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Bagisci_talep_acamaz()
+    {
+        var bagisci = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+
+        var yanit = await bagisci.GetAsync("/KurumTalep/Yeni");
+
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Contains("/Hesap/ErisimEngellendi", yanit.Headers.Location!.ToString());
+    }
+
+    [Fact]
+    public async Task Bagisci_baskasinin_bildirimini_yanitlayamaz()
+    {
+        // Örnek veride bildirim #3 Burak'a ait ve beklemede. Test bağışçısı onu kabul etmeye çalışıyor.
+        var saldirgan = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+
+        await saldirgan.PostAsync("/BagisciPanel/Yanitla", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["bildirimId"] = "3",
+            ["yanit"] = "Kabul",
+            ["__RequestVerificationToken"] = await TokenAlAsync(saldirgan, "/BagisciPanel"),
+        }));
+
+        Assert.Contains("Bildirim bulunamadı.", await saldirgan.GetStringAsync("/BagisciPanel"));
+        using var scope = _uygulama.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<KanBagis.DataAccess.KanBagisDbContext>();
+        Assert.Equal(BildirimYaniti.Beklemede, db.Bildirimler.Single(b => b.Id == 3).Yanit);
     }
 
     // ---------------- Kayıt formları ----------------
@@ -277,25 +368,25 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
     private HttpClient YeniIstemci() =>
         _uygulama.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-    private async Task<string> BagisciOlusturAsync()
+    private async Task<string> BagisciOlusturAsync(string il = "Bingöl", int kanGrubuId = 1)
     {
         var no = Interlocked.Increment(ref _sayac);
         var eposta = $"bagisci{no}@ornek.com";
         using var scope = _uygulama.Services.CreateScope();
         var sonuc = await scope.ServiceProvider.GetRequiredService<IKimlikService>().BagisciKaydetAsync(new BagisciKayitIstegi(
             eposta, Parola, TestVerisi.GecerliTc(1000 + no), "Test", "Bağışçı", "05550000000",
-            new DateOnly(1995, 1, 1), Cinsiyet.Kadin, 60, "Bingöl", 1));
+            new DateOnly(1995, 1, 1), Cinsiyet.Kadin, 60, il, kanGrubuId));
         Assert.True(sonuc.Basarili, sonuc.Hata);
         return eposta;
     }
 
-    private async Task<string> KurumOlusturAsync()
+    private async Task<string> KurumOlusturAsync(string il = "Bingöl")
     {
         var no = Interlocked.Increment(ref _sayac);
         var eposta = $"kurum{no}@ornek.com";
         using var scope = _uygulama.Services.CreateScope();
         var sonuc = await scope.ServiceProvider.GetRequiredService<IKimlikService>().KurumKaydetAsync(
-            new KurumKayitIstegi(eposta, Parola, $"Test Hastanesi {no}", "Bingöl", "04260000000"));
+            new KurumKayitIstegi(eposta, Parola, $"Test Hastanesi {no}", il, "04260000000"));
         Assert.True(sonuc.Basarili, sonuc.Hata);
         return eposta;
     }

@@ -61,7 +61,7 @@ public static class OrnekVeri
     [
         new() { Id = 1, HastaneId = 1, KanGrubuId = 8, UniteSayisi = 4, Aciliyet = Aciliyet.Acil,   Durum = TalepDurumu.Acik,       OlusturmaTarihi = new(2026, 10, 10, 8, 30, 0, DateTimeKind.Utc) },
         new() { Id = 2, HastaneId = 2, KanGrubuId = 1, UniteSayisi = 2, Aciliyet = Aciliyet.Normal, Durum = TalepDurumu.Acik,       OlusturmaTarihi = new(2026, 10, 12, 14, 0, 0, DateTimeKind.Utc) },
-        new() { Id = 3, HastaneId = 1, KanGrubuId = 3, UniteSayisi = 1, Aciliyet = Aciliyet.Normal, Durum = TalepDurumu.Karsilandi, OlusturmaTarihi = new(2026, 9, 20, 11, 15, 0, DateTimeKind.Utc) },
+        new() { Id = 3, HastaneId = 1, KanGrubuId = 3, UniteSayisi = 1, Aciliyet = Aciliyet.Normal, Durum = TalepDurumu.Karsilandi, OlusturmaTarihi = new(2026, 9, 20, 11, 15, 0, DateTimeKind.Utc), KapanisTarihi = new(2026, 9, 22, 16, 0, 0, DateTimeKind.Utc) },
     ];
 
     public static readonly Bagis[] Bagislar =
@@ -75,8 +75,8 @@ public static class OrnekVeri
 
     public static readonly Bildirim[] Bildirimler =
     [
-        new() { Id = 1, KanTalebiId = 1, BagisciId = 2,  Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.", GonderimTarihi = new(2026, 10, 10, 8, 35, 0, DateTimeKind.Utc), Okundu = true,  Yanit = BildirimYaniti.Kabul },
-        new() { Id = 2, KanTalebiId = 1, BagisciId = 5,  Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.", GonderimTarihi = new(2026, 10, 10, 8, 35, 0, DateTimeKind.Utc), Okundu = true,  Yanit = BildirimYaniti.Red },
+        new() { Id = 1, KanTalebiId = 1, BagisciId = 2,  Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.", GonderimTarihi = new(2026, 10, 10, 8, 35, 0, DateTimeKind.Utc), Okundu = true,  Yanit = BildirimYaniti.Kabul, YanitTarihi = new(2026, 10, 10, 9, 10, 0, DateTimeKind.Utc) },
+        new() { Id = 2, KanTalebiId = 1, BagisciId = 5,  Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.", GonderimTarihi = new(2026, 10, 10, 8, 35, 0, DateTimeKind.Utc), Okundu = true,  Yanit = BildirimYaniti.Red, YanitTarihi = new(2026, 10, 10, 11, 40, 0, DateTimeKind.Utc) },
         new() { Id = 3, KanTalebiId = 1, BagisciId = 10, Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.", GonderimTarihi = new(2026, 10, 10, 8, 35, 0, DateTimeKind.Utc), Okundu = false, Yanit = BildirimYaniti.Beklemede },
         new() { Id = 4, KanTalebiId = 2, BagisciId = 1,  Mesaj = "Örnek Şehir Hastanesi'nde A Rh+ kan ihtiyacı var.",       GonderimTarihi = new(2026, 10, 12, 14, 5, 0, DateTimeKind.Utc), Okundu = false, Yanit = BildirimYaniti.Beklemede },
         new() { Id = 5, KanTalebiId = 2, BagisciId = 4,  Mesaj = "Örnek Şehir Hastanesi'nde A Rh+ kan ihtiyacı var.",       GonderimTarihi = new(2026, 10, 12, 14, 5, 0, DateTimeKind.Utc), Okundu = false, Yanit = BildirimYaniti.Beklemede },

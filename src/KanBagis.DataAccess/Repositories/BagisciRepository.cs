@@ -9,7 +9,7 @@ public record BagisciAdayi(Bagisci Bagisci, DateTime? SonBagisTarihi);
 public interface IBagisciRepository : IRepository<Bagisci>
 {
     Task<Bagisci?> TcIleGetirAsync(string tcKimlikNo);
-    Task<List<BagisciAdayi>> AdaylariGetirAsync(IReadOnlyCollection<int> kanGrubuIdleri, string il);
+    Task<List<BagisciAdayi>> AdaylariGetirAsync(IReadOnlyCollection<int> kanGrubuIdleri, IReadOnlyCollection<string> iller);
     Task<DateTime?> SonBagisTarihiAsync(int bagisciId);
     Task<int> BagisSayisiAsync(int bagisciId);
     Task<Bagisci?> KanGrubuylaGetirAsync(int id);
@@ -23,13 +23,13 @@ public class BagisciRepository(KanBagisDbContext context) : EfRepository<Bagisci
              .FirstOrDefaultAsync(b => b.TcKimlikNo == tcKimlikNo);
 
     /// <summary>
-    /// Eşleştirme adayları: verilen kan gruplarından birine sahip ve verilen ilde yaşayan bağışçılar,
-    /// son bağış tarihleriyle birlikte. (KanGrubuId, Sehir) bileşik indeksini kullanır.
+    /// Eşleştirme adayları: verilen kan gruplarından birine sahip ve verilen illerden birinde yaşayan
+    /// bağışçılar, son bağış tarihleriyle birlikte. (KanGrubuId, Sehir) bileşik indeksini kullanır.
     /// Tek sorguda gelir: son bağış tarihi alt sorgu (MAX) olarak hesaplanır.
     /// </summary>
-    public Task<List<BagisciAdayi>> AdaylariGetirAsync(IReadOnlyCollection<int> kanGrubuIdleri, string il) =>
+    public Task<List<BagisciAdayi>> AdaylariGetirAsync(IReadOnlyCollection<int> kanGrubuIdleri, IReadOnlyCollection<string> iller) =>
         Tablo.AsNoTracking()
-             .Where(b => kanGrubuIdleri.Contains(b.KanGrubuId) && b.Sehir == il)
+             .Where(b => kanGrubuIdleri.Contains(b.KanGrubuId) && iller.Contains(b.Sehir))
              .OrderBy(b => b.Ad)
              .Select(b => new BagisciAdayi(b, b.Bagislar.Max(x => (DateTime?)x.BagisTarihi)))
              .ToListAsync();

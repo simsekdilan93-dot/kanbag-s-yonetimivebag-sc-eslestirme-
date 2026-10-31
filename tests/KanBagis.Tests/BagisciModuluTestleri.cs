@@ -190,7 +190,7 @@ public class BagisciDogrulamaTestleri
 }
 
 // =====================================================================
-// Bağışçı servisi (profil, kan grubu kilidi, uygun bağışçı bulma)
+// Bağışçı servisi (profil, kan grubu kilidi). Uygun bağışçı bulma: EslestirmeTestleri.cs
 // =====================================================================
 public class BagisciServiceTestleri : IDisposable
 {
@@ -216,27 +216,6 @@ public class BagisciServiceTestleri : IDisposable
     //   8 Emre   A Rh-  Diyarbakır E  bağış yok        → uygun
     //   9 Merve  B Rh-  Bingöl     K  bağış yok, 52 kg → uygun
     //  10 Burak  0 Rh-  Bingöl     E  bağış yok        → uygun
-
-    [Fact]
-    public async Task Ayni_grup_degil_uyumlu_gruplar_aranir()
-    {
-        // 0 Rh- alıcıya yalnızca 0 Rh- verebilir.
-        var sifirNegatif = await _servis.UygunBagiscilariBulAsync(8, "Bingöl");
-        Assert.Equal(["Burak", "Mehmet"], sifirNegatif.Select(u => u.Bagisci.Ad));
-
-        // AB Rh+ herkesten alabilir → Bingöl'deki tüm UYGUN bağışçılar (Fatma 120 gün kuralına takılır).
-        var abPozitif = await _servis.UygunBagiscilariBulAsync(5, "Bingöl");
-        Assert.Equal(["Ali", "Ayşe", "Burak", "Mehmet", "Merve"], abPozitif.Select(u => u.Bagisci.Ad));
-    }
-
-    [Fact]
-    public async Task Uygun_bagisci_ile_gore_suzulur()
-    {
-        // A Rh- alıcı, Diyarbakır: A Rh- ve 0 Rh- verebilir → yalnızca Emre.
-        var sonuc = await _servis.UygunBagiscilariBulAsync(2, "Diyarbakır");
-
-        Assert.Equal(["Emre"], sonuc.Select(u => u.Bagisci.Ad));
-    }
 
     [Fact]
     public async Task Profil_uygunluk_ve_nedenleri_doner()

@@ -68,6 +68,14 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
+            @if (TempData["Mesaj"] is string mesaj)
+            {
+                <div class="alert alert-success" role="status">@mesaj</div>
+            }
+            @if (TempData["Hata"] is string hata)
+            {
+                <div class="alert alert-danger" role="alert">@hata</div>
+            }
             @RenderBody()
         </main>
     </div>
