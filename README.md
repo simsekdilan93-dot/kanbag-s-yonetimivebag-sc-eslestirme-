@@ -40,11 +40,10 @@ docs/
 ├── moduller/              Modül açıklamaları (Bağışçı ve Kan Grubu, Talep ve Eşleştirme)
 ├── Demo-Senaryosu.md      Vize demosu adım adım
 ├── Vize-Hazirlik.md       Vize sözlü soruları ve cevapları
-├── Sozlu-Sinav-Cevaplari.md  Hafta 3–8 sözlü sınav soruları ve cevapları
 └── db/                    SQL şema, örnek sorgular, indeks açıklamaları
 ```
 
-Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Vize hazırlık](docs/Vize-Hazirlik.md) · [Sözlü sınav cevapları](docs/Sozlu-Sinav-Cevaplari.md)
+Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Vize hazırlık](docs/Vize-Hazirlik.md)
 
 ## Çalıştırma
 
