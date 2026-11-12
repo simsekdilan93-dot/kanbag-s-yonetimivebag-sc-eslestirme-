@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    Tüm projelerin ortak sürümü (Semantic Versioning: MAJOR.MINOR.PATCH).
+    0.x.y: henüz kararlı (1.0) sürüm değil.
+      MINOR artar: yeni özellik eklendiğinde (ör. 0.1.0 → 0.2.0)
+      PATCH artar: yalnızca hata düzeltildiğinde (ör. 0.1.0 → 0.1.1)
+    Git etiketi aynı numarayla atılır: v0.1.0
+  -->
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+</Project>

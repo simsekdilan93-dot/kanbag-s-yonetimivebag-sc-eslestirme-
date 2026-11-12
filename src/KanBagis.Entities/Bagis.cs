@@ -11,4 +11,8 @@ public class Bagis : IEntity
 
     public int HastaneId { get; set; }
     public Hastane Hastane { get; set; } = null!;
+
+    /// <summary>Bağış bir kan talebine yanıt olarak yapıldıysa o talep; gönüllü bağışta boş.</summary>
+    public int? KanTalebiId { get; set; }
+    public KanTalebi? KanTalebi { get; set; }
 }

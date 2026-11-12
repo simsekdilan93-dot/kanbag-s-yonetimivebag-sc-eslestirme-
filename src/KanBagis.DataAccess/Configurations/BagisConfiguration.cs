@@ -28,6 +28,17 @@ public class BagisConfiguration : IEntityTypeConfiguration<Bagis>
                .HasForeignKey(b => b.HastaneId)
                .OnDelete(DeleteBehavior.Restrict);
 
+        // Bağış → kan talebi (isteğe bağlı, 1-N). Talebi olan bağış kaydı talebin silinmesini engeller.
+        builder.HasOne(b => b.KanTalebi)
+               .WithMany(t => t.Bagislar)
+               .HasForeignKey(b => b.KanTalebiId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        // Aynı bağışçı aynı talep için iki kez bağış kaydı alamaz (gönüllü bağışlar, yani talepsiz olanlar, hariç).
+        builder.HasIndex(b => new { b.BagisciId, b.KanTalebiId })
+               .IsUnique()
+               .HasFilter("KanTalebiId IS NOT NULL");
+
         builder.HasData(OrnekVeri.Bagislar);
     }
 }

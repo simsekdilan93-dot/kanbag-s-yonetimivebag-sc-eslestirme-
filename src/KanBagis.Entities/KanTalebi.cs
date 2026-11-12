@@ -21,4 +21,5 @@ public class KanTalebi : IEntity
     public KanGrubu KanGrubu { get; set; } = null!;
 
     public ICollection<Bildirim> Bildirimler { get; set; } = new List<Bildirim>();
+    public ICollection<Bagis> Bagislar { get; set; } = new List<Bagis>();
 }

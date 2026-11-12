@@ -6,13 +6,15 @@ namespace KanBagis.Business.Talepler;
 
 public record TalepOlusturmaIstegi(int KanGrubuId, int UniteSayisi, Aciliyet Aciliyet, string? Aciklama);
 
-public record TalepIslemSonucu(bool Basarili, string? Hata = null, int? TalepId = null, int BildirimSayisi = 0)
+public record TalepIslemSonucu(bool Basarili, string? Hata = null, int? TalepId = null, int BildirimSayisi = 0, bool TalepKapandi = false)
 {
     public static TalepIslemSonucu Hatali(string hata, int? talepId = null) => new(false, hata, talepId);
 }
 
 /// <summary>Talebi kabul eden bağışçı. Kurum yalnızca KABUL edenlerin iletişim bilgisini görür (açık rıza).</summary>
-public record KabulEdenBagisci(string AdSoyad, string Telefon, string KanGrubu, string Il, double MesafeKm, DateTime YanitTarihi);
+public record KabulEdenBagisci(
+    int BildirimId, string AdSoyad, string Telefon, string KanGrubu, string Il, double MesafeKm,
+    DateTime YanitTarihi, bool BagisAlindi);
 
 public record TalepDetayi(
     KanTalebi Talep,
@@ -20,7 +22,8 @@ public record TalepDetayi(
     int KabulSayisi,
     int RedSayisi,
     List<KabulEdenBagisci> KabulEdenler,
-    int BildirilmemisUygunAdaySayisi);
+    int BildirilmemisUygunAdaySayisi,
+    int AlinanBagisSayisi);
 
 public interface ITalepService
 {
@@ -28,6 +31,7 @@ public interface ITalepService
     Task<TalepDetayi?> DetayGetirAsync(int hastaneId, int talepId);
     Task<TalepIslemSonucu> DahaFazlaBildirAsync(int hastaneId, int talepId);
     Task<TalepIslemSonucu> KapatAsync(int hastaneId, int talepId, TalepDurumu yeniDurum);
+    Task<TalepIslemSonucu> BagisKaydetAsync(int hastaneId, int talepId, int bildirimId);
 }
 
 /// <summary>
@@ -40,6 +44,7 @@ public sealed class TalepService(
     IHastaneRepository hastaneler,
     IRepository<KanGrubu> kanGruplari,
     IBildirimRepository bildirimler,
+    IBagisRepository bagislar,
     IEslestirmeService eslestirme,
     TimeProvider zaman) : ITalepService
 {
@@ -96,12 +101,14 @@ public sealed class TalepService(
             .Where(b => b.Yanit == BildirimYaniti.Kabul)
             .OrderBy(b => b.YanitTarihi)
             .Select(b => new KabulEdenBagisci(
+                b.Id,
                 $"{b.Bagisci.Ad} {b.Bagisci.Soyad}",
                 b.Bagisci.Telefon,
                 b.Bagisci.KanGrubu.Ad,
                 b.Bagisci.Sehir,
                 Konum.IlKonumlari.MesafeKm(talep.Hastane.Sehir, b.Bagisci.Sehir),
-                b.YanitTarihi!.Value))
+                b.YanitTarihi!.Value,
+                talep.Bagislar.Any(x => x.BagisciId == b.BagisciId)))
             .ToList();
 
         var bildirilmemis = talep.Durum == TalepDurumu.Acik
@@ -115,7 +122,8 @@ public sealed class TalepService(
             kabulEdenler.Count,
             talep.Bildirimler.Count(b => b.Yanit == BildirimYaniti.Red),
             kabulEdenler,
-            bildirilmemis);
+            bildirilmemis,
+            talep.Bagislar.Count);
     }
 
     public async Task<TalepIslemSonucu> DahaFazlaBildirAsync(int hastaneId, int talepId)
@@ -151,6 +159,44 @@ public sealed class TalepService(
         talep.KapanisTarihi = Simdi();
         await talepler.GuncelleAsync(talep);
         return new TalepIslemSonucu(true, TalepId: talepId);
+    }
+
+    /// <summary>
+    /// ENTEGRASYON NOKTASI: Talebi kabul eden bağışçı hastaneye gelip bağışını yaptığında kurum bunu kaydeder.
+    /// Tek transaction içinde: bağış kaydı (Modül A'nın uygunluk kuralı artık son bağışı görür) +
+    /// kan stoğu artışı + istenen ünite sayısına ulaşıldıysa talebin "Karşılandı" olarak kapanması (Modül B).
+    /// </summary>
+    public async Task<TalepIslemSonucu> BagisKaydetAsync(int hastaneId, int talepId, int bildirimId)
+    {
+        var talep = await talepler.DetayGetirAsync(talepId);
+        if (talep is null || talep.HastaneId != hastaneId)
+            return TalepIslemSonucu.Hatali("Talep bulunamadı.");                      // sahiplik
+        if (talep.Durum != TalepDurumu.Acik)
+            return TalepIslemSonucu.Hatali("Kapanmış talep için bağış kaydedilemez.");
+
+        var bildirim = talep.Bildirimler.SingleOrDefault(b => b.Id == bildirimId);
+        if (bildirim is null)
+            return TalepIslemSonucu.Hatali("Bu talepte böyle bir bağışçı yok.");
+        if (bildirim.Yanit != BildirimYaniti.Kabul)
+            return TalepIslemSonucu.Hatali("Yalnızca talebi kabul eden bağışçının bağışı kaydedilebilir.");
+        if (await bagislar.TalepIcinBagisVarMiAsync(bildirim.BagisciId, talepId))
+            return TalepIslemSonucu.Hatali("Bu bağışçının bu talep için bağışı zaten kaydedildi.");
+
+        // İstenen ünite sayısına bu bağışla ulaşılıyorsa talep aynı işlemde kapanır;
+        // böylece karşılanmış bir talep için bağışçılara çağrı gitmeye devam etmez.
+        var alinan = await bagislar.TalebinBagisSayisiAsync(talepId) + 1;
+        var talepKapanacak = alinan >= talep.UniteSayisi;
+
+        await bagislar.BagisKaydetVeStokArtirAsync(new Bagis
+        {
+            BagisciId = bildirim.BagisciId,
+            HastaneId = hastaneId,
+            KanTalebiId = talepId,
+            UniteSayisi = 1,
+            BagisTarihi = Simdi(),
+        }, talepKapanacak ? talepId : null);
+
+        return new TalepIslemSonucu(true, TalepId: talepId, TalepKapandi: talepKapanacak);
     }
 
     private async Task<List<EslesmeAdayi>> SiradakiAdaylarAsync(KanTalebi talep, string il, IReadOnlySet<int>? haric) =>

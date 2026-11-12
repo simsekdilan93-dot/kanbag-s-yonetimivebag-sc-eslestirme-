@@ -4,6 +4,7 @@
     ViewData["Title"] = $"Talep #{t.Id}";
     var acik = t.Durum == TalepDurumu.Acik;
     var ilerleme = Math.Min(100, Model.KabulSayisi * 100 / t.UniteSayisi);
+    var bagisIlerleme = Math.Min(100, Model.AlinanBagisSayisi * 100 / t.UniteSayisi);
 }
 
 <p><a asp-controller="KurumPanel" asp-action="Index">← Kurum paneli</a></p>
@@ -39,6 +40,10 @@
         <div class="progress mt-1" role="progressbar" aria-label="Kabul oranı" aria-valuenow="@ilerleme" aria-valuemin="0" aria-valuemax="100" style="height: 6px">
             <div class="progress-bar bg-success" style="width: @ilerleme%"></div>
         </div>
+        <div class="small text-muted mt-2">Alınan bağış: <strong class="text-danger">@Model.AlinanBagisSayisi / @t.UniteSayisi</strong></div>
+        <div class="progress mt-1" role="progressbar" aria-label="Alınan bağış oranı" aria-valuenow="@bagisIlerleme" aria-valuemin="0" aria-valuemax="100" style="height: 6px">
+            <div class="progress-bar bg-danger" style="width: @bagisIlerleme%"></div>
+        </div>
     </div></div></div>
     <div class="col-md-3 col-6"><div class="card h-100"><div class="card-body">
         <div class="text-muted small">Yanıt bekleyen</div>
@@ -54,6 +59,8 @@
 <p class="small text-muted">
     İletişim bilgileri yalnızca talebi <strong>kabul eden</strong> bağışçılar için gösterilir (açık rıza).
     Yanıt bekleyen ya da reddeden bağışçıların kimliği gösterilmez.
+    Bağışçı gelip bağışını yaptığında <strong>Bağış alındı</strong> ile kaydedin: kan stoğu artar ve
+    istenen ünite sayısına ulaşılınca talep kendiliğinden kapanır.
 </p>
 @if (Model.KabulEdenler.Count == 0)
 {
@@ -64,7 +71,7 @@ else
     <div class="table-responsive mb-4">
         <table class="table align-middle">
             <thead>
-                <tr><th>Ad soyad</th><th>Telefon</th><th>Kan grubu</th><th>İl</th><th>Uzaklık</th><th>Kabul</th></tr>
+                <tr><th>Ad soyad</th><th>Telefon</th><th>Kan grubu</th><th>İl</th><th>Uzaklık</th><th>Kabul</th><th>Bağış</th></tr>
             </thead>
             <tbody>
                 @foreach (var k in Model.KabulEdenler)
@@ -76,6 +83,23 @@ else
                         <td>@k.Il</td>
                         <td>@Gorunum.Mesafe(k.MesafeKm)</td>
                         <td>@k.YanitTarihi.ToLocalTime().ToString("dd.MM HH:mm")</td>
+                        <td>
+                            @if (k.BagisAlindi)
+                            {
+                                <span class="badge text-bg-success">✓ Alındı</span>
+                            }
+                            else if (acik)
+                            {
+                                <form asp-action="BagisKaydet" asp-route-id="@t.Id" method="post" class="d-inline">
+                                    <input type="hidden" name="bildirimId" value="@k.BildirimId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Bağış alındı</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">—</span>
+                            }
+                        </td>
                     </tr>
                 }
             </tbody>

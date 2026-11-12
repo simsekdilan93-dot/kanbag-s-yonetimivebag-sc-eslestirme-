@@ -11,7 +11,7 @@ public interface IKanTalebiRepository : IRepository<KanTalebi>
     Task<List<TalepOzeti>> HastaneninTalepleriAsync(int hastaneId);
     Task<KanTalebi?> AcikTalebiGetirAsync(int hastaneId, int kanGrubuId);
 
-    /// <summary>Talep + hastane + kan grubu + bildirimler (bağışçılarıyla). Salt okunur.</summary>
+    /// <summary>Talep + hastane + kan grubu + bildirimler (bağışçılarıyla) + talep için alınan bağışlar. Salt okunur.</summary>
     Task<KanTalebi?> DetayGetirAsync(int talepId);
 }
 
@@ -44,6 +44,7 @@ public class KanTalebiRepository(KanBagisDbContext context) : EfRepository<KanTa
              .Include(t => t.Hastane)
              .Include(t => t.KanGrubu)
              .Include(t => t.Bildirimler).ThenInclude(b => b.Bagisci).ThenInclude(b => b.KanGrubu)
+             .Include(t => t.Bagislar)
              .AsSplitQuery()
              .FirstOrDefaultAsync(t => t.Id == talepId);
 }

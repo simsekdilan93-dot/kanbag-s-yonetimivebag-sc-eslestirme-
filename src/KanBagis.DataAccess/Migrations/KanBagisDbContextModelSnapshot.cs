@@ -32,6 +32,9 @@ namespace KanBagis.DataAccess.Migrations
                     b.Property<int>("HastaneId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("KanTalebiId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("UniteSayisi")
                         .HasColumnType("INTEGER");
 
@@ -39,7 +42,13 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.HasIndex("HastaneId");
 
+                    b.HasIndex("KanTalebiId");
+
                     b.HasIndex("BagisciId", "BagisTarihi");
+
+                    b.HasIndex("BagisciId", "KanTalebiId")
+                        .IsUnique()
+                        .HasFilter("KanTalebiId IS NOT NULL");
 
                     b.ToTable("Bagislar", null, t =>
                         {
@@ -778,9 +787,16 @@ namespace KanBagis.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("KanBagis.Entities.KanTalebi", "KanTalebi")
+                        .WithMany("Bagislar")
+                        .HasForeignKey("KanTalebiId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Bagisci");
 
                     b.Navigation("Hastane");
+
+                    b.Navigation("KanTalebi");
                 });
 
             modelBuilder.Entity("KanBagis.Entities.Bagisci", b =>
@@ -885,6 +901,8 @@ namespace KanBagis.DataAccess.Migrations
 
             modelBuilder.Entity("KanBagis.Entities.KanTalebi", b =>
                 {
+                    b.Navigation("Bagislar");
+
                     b.Navigation("Bildirimler");
                 });
 #pragma warning restore 612, 618

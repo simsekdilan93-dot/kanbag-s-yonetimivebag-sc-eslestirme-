@@ -584,3 +584,79 @@ COMMIT;
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261031083903_TalepEslestirmeVeYanit', '10.0.13');
 
+BEGIN TRANSACTION;
+ALTER TABLE "Bagislar" ADD "KanTalebiId" INTEGER NULL;
+
+UPDATE "Bagislar" SET "KanTalebiId" = NULL
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "Bagislar" SET "KanTalebiId" = NULL
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "Bagislar" SET "KanTalebiId" = NULL
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "Bagislar" SET "KanTalebiId" = NULL
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "Bagislar" SET "KanTalebiId" = NULL
+WHERE "Id" = 5;
+SELECT changes();
+
+
+CREATE UNIQUE INDEX "IX_Bagislar_BagisciId_KanTalebiId" ON "Bagislar" ("BagisciId", "KanTalebiId") WHERE KanTalebiId IS NOT NULL;
+
+CREATE INDEX "IX_Bagislar_KanTalebiId" ON "Bagislar" ("KanTalebiId");
+
+CREATE TABLE "ef_temp_Bagislar" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Bagislar" PRIMARY KEY AUTOINCREMENT,
+    "BagisTarihi" TEXT NOT NULL,
+    "BagisciId" INTEGER NOT NULL,
+    "HastaneId" INTEGER NOT NULL,
+    "KanTalebiId" INTEGER NULL,
+    "UniteSayisi" INTEGER NOT NULL,
+    CONSTRAINT "CK_Bagis_UniteSayisi_Pozitif" CHECK (UniteSayisi > 0),
+    CONSTRAINT "FK_Bagislar_Bagiscilar_BagisciId" FOREIGN KEY ("BagisciId") REFERENCES "Bagiscilar" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Bagislar_Hastaneler_HastaneId" FOREIGN KEY ("HastaneId") REFERENCES "Hastaneler" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_Bagislar_KanTalepleri_KanTalebiId" FOREIGN KEY ("KanTalebiId") REFERENCES "KanTalepleri" ("Id") ON DELETE RESTRICT
+);
+
+INSERT INTO "ef_temp_Bagislar" ("Id", "BagisTarihi", "BagisciId", "HastaneId", "KanTalebiId", "UniteSayisi")
+SELECT "Id", "BagisTarihi", "BagisciId", "HastaneId", "KanTalebiId", "UniteSayisi"
+FROM "Bagislar";
+
+COMMIT;
+
+PRAGMA foreign_keys = 0;
+
+BEGIN TRANSACTION;
+DROP TABLE "Bagislar";
+
+ALTER TABLE "ef_temp_Bagislar" RENAME TO "Bagislar";
+
+COMMIT;
+
+PRAGMA foreign_keys = 1;
+
+BEGIN TRANSACTION;
+CREATE INDEX "IX_Bagislar_BagisciId_BagisTarihi" ON "Bagislar" ("BagisciId", "BagisTarihi");
+
+CREATE UNIQUE INDEX "IX_Bagislar_BagisciId_KanTalebiId" ON "Bagislar" ("BagisciId", "KanTalebiId") WHERE KanTalebiId IS NOT NULL;
+
+CREATE INDEX "IX_Bagislar_HastaneId" ON "Bagislar" ("HastaneId");
+
+CREATE INDEX "IX_Bagislar_KanTalebiId" ON "Bagislar" ("KanTalebiId");
+
+COMMIT;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261112154930_BagisTalepBaglantisi', '10.0.13');
+

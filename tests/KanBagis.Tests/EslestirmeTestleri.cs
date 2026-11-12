@@ -157,6 +157,7 @@ public class TalepServiceTestleri : IDisposable
             new HastaneRepository(_db.Context),
             new EfRepository<KanGrubu>(_db.Context),
             new BildirimRepository(_db.Context),
+            new BagisRepository(_db.Context),
             eslestirme,
             zaman);
     }
@@ -310,6 +311,7 @@ public class BildirimServiceTestleri : IDisposable
         _talepler = new TalepService(
             new KanTalebiRepository(_db.Context), new HastaneRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context),
             new BildirimRepository(_db.Context),
+            new BagisRepository(_db.Context),
             new EslestirmeService(new BagisciRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context), kural),
             zaman);
     }

@@ -205,6 +205,46 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         var detay = await kurum.GetStringAsync(detayAdresi);
         Assert.Contains("05550000000", detay);
         Assert.Contains("Test Bağışçı", detay);
+
+        // 4) VİZE entegrasyonu: bağışçı hastaneye gelir, kurum "Bağış alındı" der.
+        int StokAPozitif()
+        {
+            using var s = _uygulama.Services.CreateScope();
+            return s.ServiceProvider.GetRequiredService<KanBagis.DataAccess.KanBagisDbContext>()
+                    .KanStoklari.Single(k => k.KanGrubuId == 1).UniteSayisi;
+        }
+        var stokOnce = StokAPozitif();
+        var kabulBildirimId = Regex.Match(detay, "name=\"bildirimId\" value=\"(\\d+)\"").Groups[1].Value;
+        var bagis = await kurum.PostAsync(detayAdresi.Replace("/Detay/", "/BagisKaydet/"), new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["bildirimId"] = kabulBildirimId,
+            ["__RequestVerificationToken"] = await TokenAlAsync(kurum, detayAdresi),
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, bagis.StatusCode);
+
+        var sonDetay = await kurum.GetStringAsync(detayAdresi);
+        Assert.Contains("talep karşılandı olarak kapatıldı", sonDetay);   // 1 ünitelik talep tamamlandı
+        Assert.Contains("✓ Alındı", sonDetay);
+        Assert.Equal(stokOnce + 1, StokAPozitif());                       // stok arttı
+
+        // 5) Bağışçının paneli: son bağış bugün, artık bağış için uygun değil (90/120 gün kuralı).
+        var sonPanel = await bagisci.GetStringAsync("/BagisciPanel");
+        Assert.Contains("Şu an bağış yapamazsınız", sonPanel);
+        Assert.Contains("1 bağış", sonPanel);
+    }
+
+    [Fact]
+    public async Task Alt_bilgide_surum_numarasi_gorunur()
+    {
+        var html = await YeniIstemci().GetStringAsync("/");
+
+        Assert.Contains("v0.1.0", html);
+    }
+
+    [Fact]
+    public async Task Sablondan_kalan_privacy_sayfasi_kaldirildi()
+    {
+        Assert.Equal(HttpStatusCode.NotFound, (await YeniIstemci().GetAsync("/Home/Privacy")).StatusCode);
     }
 
     [Fact]

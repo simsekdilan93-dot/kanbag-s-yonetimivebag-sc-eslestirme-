@@ -2,13 +2,15 @@
 
 Kan bağışçılarını, hastanelerin kan taleplerini ve kan stoğunu tek bir yerden yöneten web uygulaması. Bir kan grubu için talep açıldığında sistem uygun bağışçılara bildirim gönderir.
 
-## Özellikler (planlanan)
+**Güncel sürüm: [v0.1.0](https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-/releases/tag/v0.1.0) (vize ara sürümü)** · [Sürüm notları](CHANGELOG.md) · [Demo senaryosu](docs/Demo-Senaryosu.md)
+
+## Özellikler
 
 - ✅ Kayıt ve giriş (bağışçı / kurum), rol bazlı paneller
 - ✅ Bağışçı profili, bağış uygunluk kuralı (yaş, kilo, 90/120 gün), kan grubu uyumluluğu
-- Kan grubu bazında stok takibi
 - ✅ Hastane kan talebi oluşturma (normal / acil)
 - ✅ Kan grubu uyumluluğu ve konuma (mesafeye) göre eşleştirme, bildirim gönderme ve yanıt takibi
+- ✅ Bağış kaydı → kan stoğu artışı → talebin kendiliğinden kapanması (uçtan uca)
 
 ## Teknolojiler
 
@@ -30,16 +32,18 @@ src/
 ├── KanBagis.Business/     İş katmanı (servisler, iş kuralları)
 └── KanBagis.Web/          Sunum katmanı (MVC)
 tests/
-└── KanBagis.Tests/        CRUD, kısıt, parola, giriş ve yetkilendirme testleri (xUnit)
+└── KanBagis.Tests/        CRUD, kısıt, parola, giriş, yetkilendirme ve entegrasyon testleri (xUnit)
 docs/
 ├── ER-Diyagrami.md        Veri modeli
 ├── Mimari.md              Katmanlı mimari şeması
 ├── Guvenlik-Notu.md       Kimlik doğrulama ve yetkilendirme güvenlik notu
 ├── moduller/              Modül açıklamaları (Bağışçı ve Kan Grubu, Talep ve Eşleştirme)
+├── Demo-Senaryosu.md      Vize demosu adım adım
+├── Vize-Hazirlik.md       Vize sözlü soruları ve cevapları
 └── db/                    SQL şema, örnek sorgular, indeks açıklamaları
 ```
 
-Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md)
+Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Vize hazırlık](docs/Vize-Hazirlik.md)
 
 ## Çalıştırma
 
@@ -69,3 +73,4 @@ dotnet test
 - [x] **Hafta 5:** Kayıt/giriş, PBKDF2 parola hash'i + tuz, hesap kilitleme, çerez oturumu, rol tabanlı erişim (Bağışçı/Kurum), güvenlik notu
 - [x] **Hafta 6:** Bağışçı kaydı ve kan grubu yönetimi: ABO/Rh modeli ve uyumluluk, bağış uygunluk kuralı, TC algoritması, 81 il listesi, profil düzenleme (sahiplik kontrolü), kan grubu kilidi
 - [x] **Hafta 7:** Talep ve grup/konum eşleştirme: talep açma, uyumlu + uygun bağışçıları mesafeye göre sıralama (Haversine), aciliyete göre yarıçap ve bildirim kotası, Kabul/Red yanıtı, kurumun kabul edenleri görmesi
+- [x] **Hafta 8 (VİZE):** Uçtan uca entegrasyon (bağış kaydı → stok → talep kapanışı), bilinen hataların giderilmesi, entegrasyon testleri, `v0.1.0` sürüm etiketi, demo senaryosu ve sözlü hazırlık

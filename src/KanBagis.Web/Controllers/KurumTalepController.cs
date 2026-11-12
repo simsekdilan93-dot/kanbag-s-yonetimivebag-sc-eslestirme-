@@ -78,6 +78,21 @@ public class KurumTalepController(ITalepService talepler, ITanimService tanimlar
         return RedirectToAction(nameof(Detay), new { id });
     }
 
+    /// <summary>Kabul eden bağışçı hastaneye gelip bağışını yaptığında kaydedilir: stok artar, gerekirse talep kapanır.</summary>
+    [HttpPost]
+    public async Task<IActionResult> BagisKaydet(int id, int bildirimId)
+    {
+        if (OturumdakiHastaneId is not { } hastaneId) return Forbid();
+
+        var sonuc = await talepler.BagisKaydetAsync(hastaneId, id, bildirimId);
+        TempData[sonuc.Basarili ? "Mesaj" : "Hata"] = sonuc.Basarili
+            ? (sonuc.TalepKapandi
+                ? "Bağış kaydedildi ve stoğa eklendi. İstenen ünite sayısına ulaşıldığı için talep karşılandı olarak kapatıldı."
+                : "Bağış kaydedildi ve stoğa eklendi.")
+            : sonuc.Hata;
+        return RedirectToAction(nameof(Detay), new { id });
+    }
+
     private async Task<TalepOlusturViewModel> ListeleriDoldurAsync(TalepOlusturViewModel model)
     {
         model.KanGruplari = (await tanimlar.KanGruplariAsync())
