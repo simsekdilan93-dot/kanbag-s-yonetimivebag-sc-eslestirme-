@@ -26,7 +26,7 @@ dotnet run --project src/KanBagis.Web    # http://localhost:5284
 | 8 | Kurum | Talep detayını yenile | Kabul eden bağışçının **adı ve telefonu** görünüyor (yalnızca kabul edenler, açık rıza). |
 | 9 | Kurum | **Bağış alındı** | "Bağış kaydedildi ve stoğa eklendi… talep karşılandı" → talep **Karşılandı**. Kurum panelinde **A Rh+ stoğu 1 arttı** (Hafta 8 entegrasyonu). |
 | 10 | Bağışçı | Paneli yenile | Son bağış **bugün**, "Şu an bağış yapamazsınız" ve **uygun olunacak tarih** (kadın 120 / erkek 90 gün). Modül A, Modül B'nin kaydettiği bağışı görüyor. |
-| 11 | — | GitHub → **Releases → v0.1.0** | Etiketlenmiş ara sürüm. `CHANGELOG.md` sürüm notları. |
+| 11 | — | GitHub → **Tags → v0.1.0** (depo sayfasında dal seçicinin yanındaki "Tags") | Etiketlenmiş ara sürüm: `git tag -a v0.1.0`. `CHANGELOG.md` sürüm notları. |
 
 ## Demo sırasında söylenecek tek cümleler
 
