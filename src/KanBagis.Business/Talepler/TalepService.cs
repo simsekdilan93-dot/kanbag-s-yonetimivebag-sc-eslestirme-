@@ -1,4 +1,5 @@
 using KanBagis.Business.Bagiscilar;
+using KanBagis.Business.DisServisler;
 using KanBagis.DataAccess.Repositories;
 using KanBagis.Entities;
 
@@ -14,7 +15,10 @@ public record TalepIslemSonucu(bool Basarili, string? Hata = null, int? TalepId 
 /// <summary>Talebi kabul eden bağışçı. Kurum yalnızca KABUL edenlerin iletişim bilgisini görür (açık rıza).</summary>
 public record KabulEdenBagisci(
     int BildirimId, string AdSoyad, string Telefon, string KanGrubu, string Il, double MesafeKm,
-    DateTime YanitTarihi, bool BagisAlindi);
+    DateTime YanitTarihi, bool BagisAlindi, double? YolDakika = null, MesafeKaynagi Kaynak = MesafeKaynagi.KusUcusu);
+
+/// <summary>Telefona gönderim durumlarının sayıları (Hafta 9).</summary>
+public record TelefonGonderimOzeti(int Gonderildi, int Kuyrukta, int Basarisiz, int Kapali, string? SonHata);
 
 public record TalepDetayi(
     KanTalebi Talep,
@@ -23,7 +27,8 @@ public record TalepDetayi(
     int RedSayisi,
     List<KabulEdenBagisci> KabulEdenler,
     int BildirilmemisUygunAdaySayisi,
-    int AlinanBagisSayisi);
+    int AlinanBagisSayisi,
+    TelefonGonderimOzeti Telefon);
 
 public interface ITalepService
 {
@@ -46,6 +51,8 @@ public sealed class TalepService(
     IBildirimRepository bildirimler,
     IBagisRepository bagislar,
     IEslestirmeService eslestirme,
+    IYolMesafesiServisi yolMesafesi,
+    IBildirimKuyrugu bildirimKuyrugu,
     TimeProvider zaman) : ITalepService
 {
     public const int MaksimumAciklamaUzunlugu = 300;
@@ -89,6 +96,10 @@ public sealed class TalepService(
             talep.Bildirimler.Add(BildirimOlustur(aday, hastane, kanGrubu, talep));
 
         await talepler.EkleAsync(talep);
+
+        // Telefona gönderim arka planda yapılır: talep, SMS/push servislerinin yanıtını beklemeden oluşur.
+        foreach (var b in talep.Bildirimler) bildirimKuyrugu.Ekle(b.Id);
+
         return new TalepIslemSonucu(true, TalepId: talep.Id, BildirimSayisi: secilenler.Count);
     }
 
@@ -97,8 +108,10 @@ public sealed class TalepService(
         var talep = await talepler.DetayGetirAsync(talepId);
         if (talep is null || talep.HastaneId != hastaneId) return null;   // sahiplik
 
-        var kabulEdenler = talep.Bildirimler
-            .Where(b => b.Yanit == BildirimYaniti.Kabul)
+        var kabulBildirimleri = talep.Bildirimler.Where(b => b.Yanit == BildirimYaniti.Kabul).ToList();
+        var yollar = await yolMesafesi.HesaplaAsync(talep.Hastane.Sehir, kabulBildirimleri.Select(b => b.Bagisci.Sehir));
+
+        var kabulEdenler = kabulBildirimleri
             .OrderBy(b => b.YanitTarihi)
             .Select(b => new KabulEdenBagisci(
                 b.Id,
@@ -106,9 +119,11 @@ public sealed class TalepService(
                 b.Bagisci.Telefon,
                 b.Bagisci.KanGrubu.Ad,
                 b.Bagisci.Sehir,
-                Konum.IlKonumlari.MesafeKm(talep.Hastane.Sehir, b.Bagisci.Sehir),
+                yollar[b.Bagisci.Sehir].Km,
                 b.YanitTarihi!.Value,
-                talep.Bagislar.Any(x => x.BagisciId == b.BagisciId)))
+                talep.Bagislar.Any(x => x.BagisciId == b.BagisciId),
+                yollar[b.Bagisci.Sehir].Dakika,
+                yollar[b.Bagisci.Sehir].Kaynak))
             .ToList();
 
         var bildirilmemis = talep.Durum == TalepDurumu.Acik
@@ -123,7 +138,14 @@ public sealed class TalepService(
             talep.Bildirimler.Count(b => b.Yanit == BildirimYaniti.Red),
             kabulEdenler,
             bildirilmemis,
-            talep.Bagislar.Count);
+            talep.Bagislar.Count,
+            new TelefonGonderimOzeti(
+                talep.Bildirimler.Count(b => b.DisKanalDurumu == DisKanalDurumu.Gonderildi),
+                talep.Bildirimler.Count(b => b.DisKanalDurumu == DisKanalDurumu.Kuyrukta),
+                talep.Bildirimler.Count(b => b.DisKanalDurumu == DisKanalDurumu.Basarisiz),
+                talep.Bildirimler.Count(b => b.DisKanalDurumu == DisKanalDurumu.Yok),
+                talep.Bildirimler.Where(b => b.DisKanalDurumu == DisKanalDurumu.Basarisiz)
+                    .OrderByDescending(b => b.DisKanalTarihi).Select(b => b.DisKanalHata).FirstOrDefault()));
     }
 
     public async Task<TalepIslemSonucu> DahaFazlaBildirAsync(int hastaneId, int talepId)
@@ -140,7 +162,9 @@ public sealed class TalepService(
         if (secilenler.Count == 0)
             return TalepIslemSonucu.Hatali("Arama alanında bildirim gönderilebilecek başka uygun bağışçı yok.");
 
-        await bildirimler.TopluEkleAsync(secilenler.Select(a => BildirimOlustur(a, talep.Hastane, talep.KanGrubu, talep)));
+        var yeniler = secilenler.Select(a => BildirimOlustur(a, talep.Hastane, talep.KanGrubu, talep)).ToList();
+        await bildirimler.TopluEkleAsync(yeniler);
+        foreach (var b in yeniler) bildirimKuyrugu.Ekle(b.Id);
         return new TalepIslemSonucu(true, TalepId: talepId, BildirimSayisi: secilenler.Count);
     }
 
@@ -212,6 +236,7 @@ public sealed class TalepService(
         KanTalebiId = talep.Id,
         GonderimTarihi = Simdi(),
         Yanit = BildirimYaniti.Beklemede,
+        DisKanalDurumu = DisKanalDurumu.Kuyrukta,   // telefona gönderim arka planda yapılacak
         Mesaj = (talep.Aciliyet == Aciliyet.Acil ? "ACİL: " : "")
               + $"{hastane.Ad} ({hastane.Sehir}) {kanGrubu.Ad} kan ihtiyacı: {talep.UniteSayisi} ünite.",
     };

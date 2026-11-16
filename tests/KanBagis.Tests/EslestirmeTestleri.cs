@@ -1,4 +1,5 @@
 using KanBagis.Business.Bagiscilar;
+using KanBagis.Business.DisServisler;
 using KanBagis.Business.Konum;
 using KanBagis.Business.Talepler;
 using KanBagis.Business.Tanimlar;
@@ -79,7 +80,8 @@ public class EslestirmeServiceTestleri : IDisposable
         _eslestirme = new EslestirmeService(
             new BagisciRepository(_db.Context),
             new EfRepository<KanGrubu>(_db.Context),
-            new BagisUygunlukKurali(zaman));
+            new BagisUygunlukKurali(zaman),
+            new KusUcusuMesafeServisi());
     }
 
     public void Dispose() => _db.Dispose();
@@ -151,7 +153,8 @@ public class TalepServiceTestleri : IDisposable
         var eslestirme = new EslestirmeService(
             new BagisciRepository(_db.Context),
             new EfRepository<KanGrubu>(_db.Context),
-            new BagisUygunlukKurali(zaman));
+            new BagisUygunlukKurali(zaman),
+            new KusUcusuMesafeServisi());
         _talepler = new TalepService(
             new KanTalebiRepository(_db.Context),
             new HastaneRepository(_db.Context),
@@ -159,6 +162,8 @@ public class TalepServiceTestleri : IDisposable
             new BildirimRepository(_db.Context),
             new BagisRepository(_db.Context),
             eslestirme,
+            new KusUcusuMesafeServisi(),
+            new BildirimKuyrugu(),
             zaman);
     }
 
@@ -312,7 +317,8 @@ public class BildirimServiceTestleri : IDisposable
             new KanTalebiRepository(_db.Context), new HastaneRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context),
             new BildirimRepository(_db.Context),
             new BagisRepository(_db.Context),
-            new EslestirmeService(new BagisciRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context), kural),
+            new EslestirmeService(new BagisciRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context), kural, new KusUcusuMesafeServisi()),
+            new KusUcusuMesafeServisi(), new BildirimKuyrugu(),
             zaman);
     }
 

@@ -28,6 +28,7 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
         configurationBuilder.Properties<Aciliyet>().HaveConversion<string>().HaveMaxLength(10);
         configurationBuilder.Properties<TalepDurumu>().HaveConversion<string>().HaveMaxLength(15);
         configurationBuilder.Properties<BildirimYaniti>().HaveConversion<string>().HaveMaxLength(15);
+        configurationBuilder.Properties<DisKanalDurumu>().HaveConversion<string>().HaveMaxLength(12);
         configurationBuilder.Properties<KullaniciRolu>().HaveConversion<string>().HaveMaxLength(10);
     }
 }

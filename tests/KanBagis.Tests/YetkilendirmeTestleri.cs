@@ -238,7 +238,9 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
     {
         var html = await YeniIstemci().GetStringAsync("/");
 
-        Assert.Contains("v0.1.0", html);
+        // Sürüm Directory.Build.props'tan gelir; semantic versioning biçiminde olmalı (MAJOR.MINOR.PATCH).
+        Assert.Matches(@"^\d+\.\d+\.\d+$", KanBagis.Web.SurumBilgisi.Surum);
+        Assert.Contains("v" + KanBagis.Web.SurumBilgisi.Surum, html);
     }
 
     [Fact]
@@ -473,6 +475,9 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseSetting("ConnectionStrings:KanBagis", $"Data Source={_dbYolu};Pooling=False");
+            // Testler internete çıkmaz: yol mesafesi kuş uçuşu, anlık bildirim kapalı.
+            builder.UseSetting("DisServisler:Mesafe:Etkin", "false");
+            builder.UseSetting("DisServisler:Ntfy:Etkin", "false");
             builder.ConfigureTestServices(services =>
                 services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher(iterasyon: 1_000)));
         }

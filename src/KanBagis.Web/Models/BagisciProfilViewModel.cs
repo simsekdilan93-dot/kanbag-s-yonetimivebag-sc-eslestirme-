@@ -35,4 +35,11 @@ public class BagisciProfilViewModel
     [ValidateNever] public string Cinsiyet { get; set; } = string.Empty;
     [ValidateNever] public bool KanGrubuKilitli { get; set; }
     [ValidateNever] public List<SelectListItem> KanGruplari { get; set; } = [];
+
+    // ---- Telefon bildirimleri (Hafta 9, yalnızca gösterim) ----
+    [ValidateNever] public bool AnlikServisAcik { get; set; }
+    [ValidateNever] public string? AnlikAbonelikAdresi { get; set; }
+    [ValidateNever] public string? AnlikKanal { get; set; }
+    [ValidateNever] public bool SmsServisAcik { get; set; }
+    [ValidateNever] public bool SmsIzni { get; set; }
 }

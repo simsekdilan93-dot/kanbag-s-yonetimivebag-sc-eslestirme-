@@ -8,7 +8,7 @@
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
     <h1 class="h3 mb-0">Merhaba, @b.Ad</h1>
-    <a asp-action="Profil" class="btn btn-outline-secondary btn-sm">Profilimi düzenle</a>
+    <a asp-action="Profil" class="btn btn-outline-secondary btn-sm">Profil ve telefon bildirimleri</a>
 </div>
 
 <div class="row g-3 mb-4">
@@ -89,6 +89,16 @@ else
                             }
                         </div>
                         <div class="small">@bildirim.Mesaj</div>
+                        @if (Model.HastaneIllerineYol.TryGetValue(talep.Hastane.Sehir, out var yol))
+                        {
+                            <div class="small">
+                                Hastaneye: <strong>@Gorunum.Yol(yol)</strong>
+                                @if (yol.Kaynak != KanBagis.Business.DisServisler.MesafeKaynagi.AyniIl)
+                                {
+                                    <span> · <a href="@Gorunum.YolTarifi(b.Sehir, talep.Hastane.Sehir)" target="_blank" rel="noopener">Yol tarifi (harita)</a></span>
+                                }
+                            </div>
+                        }
                         <div class="small text-muted">
                             @bildirim.GonderimTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
                             @if (talep.Durum != TalepDurumu.Acik)

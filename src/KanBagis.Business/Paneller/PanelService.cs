@@ -1,11 +1,13 @@
 using KanBagis.Business.Bagiscilar;
+using KanBagis.Business.DisServisler;
 using KanBagis.Business.Talepler;
 using KanBagis.DataAccess.Repositories;
 using KanBagis.Entities;
 
 namespace KanBagis.Business.Paneller;
 
-public record BagisciPaneli(BagisciProfili Profil, List<Bildirim> Bildirimler)
+public record BagisciPaneli(BagisciProfili Profil, List<Bildirim> Bildirimler,
+    IReadOnlyDictionary<string, YolBilgisi> HastaneIllerineYol)
 {
     /// <summary>Yanıt bekleyen ve talebi hâlâ açık olan bildirimler.</summary>
     public int BekleyenSayisi => Bildirimler.Count(b => YanitlanabilirMi(b));
@@ -32,7 +34,8 @@ public sealed class PanelService(
     IBildirimRepository bildirimler,
     IHastaneRepository hastaneler,
     IKanTalebiRepository talepler,
-    IKanStokRepository stoklar) : IPanelService
+    IKanStokRepository stoklar,
+    IYolMesafesiServisi yolMesafesi) : IPanelService
 {
     public async Task<BagisciPaneli?> BagisciPaneliAsync(int bagisciId)
     {
@@ -49,7 +52,10 @@ public sealed class PanelService(
         // Liste yüklendi (Okundu değerleri eski hâliyle duruyor → "Yeni" etiketi bu sefer gösterilir), sonra okundu işaretlenir.
         await bildirimler.OkunduIsaretleAsync(bagisciId);
 
-        return new BagisciPaneli(profil, liste);
+        // Bağışçının ilinden çağrı yapan hastanelerin illerine yol mesafesi (harita API'si, önbellekli).
+        var yollar = await yolMesafesi.HesaplaAsync(profil.Bagisci.Sehir, liste.Select(b => b.KanTalebi.Hastane.Sehir));
+
+        return new BagisciPaneli(profil, liste, yollar);
     }
 
     public async Task<KurumPaneli?> KurumPaneliAsync(int hastaneId)

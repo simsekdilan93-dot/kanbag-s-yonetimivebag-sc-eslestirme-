@@ -66,6 +66,53 @@
             <button type="submit" class="btn btn-danger">Kaydet</button>
             <a asp-action="Index" class="btn btn-link">Vazgeç</a>
         </form>
+
+        <div class="card mt-5">
+            <div class="card-body">
+                <h2 class="h5">Telefon bildirimleri</h2>
+                <p class="small text-muted">
+                    Kan çağrıları her zaman bu sitedeki panelinde görünür. İstersen ayrıca telefonuna da gönderilir.
+                    Telefona giden mesajda adın ya da telefonun yazmaz; yalnızca il, kan grubu ve ünite sayısı yazar.
+                </p>
+
+                <h3 class="h6 mt-3">Anlık bildirim (ntfy uygulaması)</h3>
+                @if (!Model.AnlikServisAcik)
+                {
+                    <p class="small text-muted">Anlık bildirim servisi şu an kapalı.</p>
+                }
+                else if (Model.AnlikKanal is null)
+                {
+                    <form asp-action="AnlikBildirim" method="post">
+                        <input type="hidden" name="ac" value="true" />
+                        <button type="submit" class="btn btn-outline-danger btn-sm">Anlık bildirimi aç</button>
+                    </form>
+                }
+                else
+                {
+                    <ol class="small mb-2">
+                        <li>Telefonuna <strong>ntfy</strong> uygulamasını kur (Google Play / App Store, ücretsiz).</li>
+                        <li>Uygulamada <strong>+</strong> → <strong>Subscribe to topic</strong> → şu kanal adını yaz: <code>@Model.AnlikKanal</code></li>
+                    </ol>
+                    <p class="small mb-2">Ya da telefonundan şu adresi aç: <a href="@Model.AnlikAbonelikAdresi" target="_blank" rel="noopener">@Model.AnlikAbonelikAdresi</a></p>
+                    <p class="small text-muted mb-2">Kanal adı rastgeledir; adı bilmeyen kimse mesajlarını göremez. Kimseyle paylaşma.</p>
+                    <form asp-action="AnlikBildirim" method="post">
+                        <input type="hidden" name="ac" value="false" />
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">Anlık bildirimi kapat</button>
+                    </form>
+                }
+
+                <h3 class="h6 mt-4">SMS</h3>
+                @if (!Model.SmsServisAcik)
+                {
+                    <p class="small text-muted mb-2">SMS servisi şu an yapılandırılmamış. İzin verirsen servis açıldığında SMS de alırsın.</p>
+                }
+                <form asp-action="SmsIzni" method="post" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="izin" value="@(Model.SmsIzni ? "false" : "true")" />
+                    <span class="small">@(Model.SmsIzni ? "SMS ile bildirim almayı kabul ettin." : "SMS ile bildirim almıyorsun.")</span>
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">@(Model.SmsIzni ? "İzni geri al" : "SMS izni ver")</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 

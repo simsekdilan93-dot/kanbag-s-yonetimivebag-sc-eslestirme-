@@ -55,6 +55,17 @@
     </div></div></div>
 </div>
 
+<p class="small text-muted mb-3">
+    <strong>Telefona bildirim:</strong>
+    @Model.Telefon.Gonderildi gönderildi · @Model.Telefon.Kuyrukta gönderiliyor · @Model.Telefon.Basarisiz ulaşmadı
+    · @Model.Telefon.Kapali bağışçının telefon bildirimi kapalı.
+    Telefona ulaşmasa bile bağışçı çağrıyı panelinde görür.
+    @if (Model.Telefon.SonHata is { } hata)
+    {
+        <br /><span class="text-danger">Son hata: @hata</span>
+    }
+</p>
+
 <h2 class="h5">Kabul eden bağışçılar</h2>
 <p class="small text-muted">
     İletişim bilgileri yalnızca talebi <strong>kabul eden</strong> bağışçılar için gösterilir (açık rıza).
@@ -81,7 +92,7 @@ else
                         <td><a href="tel:@k.Telefon">@k.Telefon</a></td>
                         <td>@k.KanGrubu</td>
                         <td>@k.Il</td>
-                        <td>@Gorunum.Mesafe(k.MesafeKm)</td>
+                        <td>@Gorunum.Yol(k.MesafeKm, k.YolDakika, k.Kaynak)</td>
                         <td>@k.YanitTarihi.ToLocalTime().ToString("dd.MM HH:mm")</td>
                         <td>
                             @if (k.BagisAlindi)

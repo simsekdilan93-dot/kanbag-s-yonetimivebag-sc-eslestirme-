@@ -15,6 +15,15 @@ public class Bagisci : IEntity
     /// <summary>İl adı; 81 il listesinden seçilir (eşleştirme bu alana göre yapılır).</summary>
     public string Sehir { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Telefona anlık bildirim (push) kanalı. Bağışçı açarsa rastgele, tahmin edilemez bir ad üretilir;
+    /// bağışçı telefonundaki ntfy uygulamasında bu kanala abone olur. Boşsa anlık bildirim kapalıdır.
+    /// </summary>
+    public string? AnlikBildirimKanali { get; set; }
+
+    /// <summary>Bağışçı SMS ile bildirim almayı kabul etti mi (açık rıza).</summary>
+    public bool SmsIzni { get; set; }
+
     public int KanGrubuId { get; set; }
     public KanGrubu KanGrubu { get; set; } = null!;
 

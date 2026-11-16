@@ -1,6 +1,8 @@
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using KanBagis.Business;
+using KanBagis.Business.DisServisler;
+using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.WebEncoders;
@@ -21,6 +23,16 @@ builder.Services.Configure<WebEncoderOptions>(options =>
 var connectionString = builder.Configuration.GetConnectionString("KanBagis")!
     .Replace("{ContentRoot}", builder.Environment.ContentRootPath);
 builder.Services.AddBusiness(connectionString);
+
+// ---- Harici servis ayarları (Hafta 9) ----
+// appsettings.json'da yalnızca gizli olmayan değerler var. Anahtarlar ORTAM DEĞİŞKENİNDEN gelir, örn.:
+//   DisServisler__Twilio__AccountSid / DisServisler__Twilio__AuthToken / DisServisler__Twilio__Gonderen
+//   DisServisler__Ntfy__Token
+// ASP.NET Core ortam değişkenlerini appsettings'in ÜSTÜNE yazar; "__" bölüm ayırıcısıdır.
+builder.Services.Configure<MesafeApiAyarlari>(builder.Configuration.GetSection(MesafeApiAyarlari.Bolum));
+builder.Services.Configure<NtfyAyarlari>(builder.Configuration.GetSection(NtfyAyarlari.Bolum));
+builder.Services.Configure<TwilioAyarlari>(builder.Configuration.GetSection(TwilioAyarlari.Bolum));
+builder.Services.Configure<BildirimGonderimAyarlari>(builder.Configuration.GetSection(BildirimGonderimAyarlari.Bolum));
 
 // ---- Kimlik doğrulama: çerez (cookie) tabanlı oturum ----
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -48,6 +60,19 @@ var app = builder.Build();
 
 // Uygulama açılırken bekleyen migration'lar uygulanır; veritabanı yoksa oluşturulur.
 await DependencyInjection.VeritabaniniHazirlaAsync(app.Services);
+
+// Hangi harici servislerin açık olduğu loglanır (anahtarların KENDİSİ asla loglanmaz).
+{
+    var log = app.Services.GetRequiredService<ILogger<Program>>();
+    var mesafe = app.Services.GetRequiredService<IOptions<MesafeApiAyarlari>>().Value;
+    var ntfy = app.Services.GetRequiredService<IOptions<NtfyAyarlari>>().Value;
+    var twilio = app.Services.GetRequiredService<IOptions<TwilioAyarlari>>().Value;
+    log.LogInformation("Harici servisler — Yol mesafesi: {Mesafe}, Anlık bildirim (ntfy): {Ntfy}{Token}, SMS (Twilio): {Sms}",
+        mesafe.Etkin ? "açık" : "kapalı (kuş uçuşu)",
+        ntfy.Etkin ? "açık" : "kapalı",
+        string.IsNullOrEmpty(ntfy.Token) ? "" : " (erişim belirteci tanımlı)",
+        twilio.Etkin ? "açık" : "kapalı (ortam değişkenleri tanımlı değil)");
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -1,4 +1,5 @@
 using KanBagis.Business.Bagiscilar;
+using KanBagis.Business.DisServisler;
 using KanBagis.Business.Talepler;
 using KanBagis.DataAccess.Repositories;
 using KanBagis.Entities;
@@ -26,7 +27,8 @@ public class EntegrasyonTestleri : IDisposable
         _talepler = new TalepService(
             new KanTalebiRepository(_db.Context), new HastaneRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context),
             new BildirimRepository(_db.Context), new BagisRepository(_db.Context),
-            new EslestirmeService(new BagisciRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context), kural),
+            new EslestirmeService(new BagisciRepository(_db.Context), new EfRepository<KanGrubu>(_db.Context), kural, new KusUcusuMesafeServisi()),
+            new KusUcusuMesafeServisi(), new BildirimKuyrugu(),
             zaman);
     }
 

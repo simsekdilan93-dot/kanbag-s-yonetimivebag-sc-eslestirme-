@@ -1,4 +1,5 @@
 using KanBagis.Business.Bagiscilar;
+using KanBagis.Business.DisServisler;
 using KanBagis.Business.Guvenlik;
 using KanBagis.Business.Kimlik;
 using KanBagis.Business.Paneller;
@@ -29,6 +30,25 @@ public static class DependencyInjection
         services.AddScoped<ITalepService, TalepService>();
         services.AddScoped<IBildirimService, BildirimService>();
         services.AddScoped<IPanelService, PanelService>();
+
+        // ---- Harici servisler (Hafta 9). Ayarlar Web katmanında appsettings + ortam değişkenlerinden bağlanır.
+        // Harita / yol mesafesi: OSRM. Önbellek ve hız sınırı durumu tek örnek (singleton).
+        services.AddSingleton<MesafeOnbellegi>();
+        services.AddHttpClient<OsrmMesafeServisi>(c =>
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("KanBagis/0.2 (Bingol Universitesi ders projesi)"));
+        services.AddTransient<IYolMesafesiServisi>(sp => sp.GetRequiredService<OsrmMesafeServisi>());
+
+        // Telefon bildirim kanalları: ntfy (push) ve Twilio (SMS). Yapılandırılmayan kanal kendiliğinden kapalı kalır.
+        services.AddHttpClient<NtfyKanali>();
+        services.AddHttpClient<TwilioSmsKanali>();
+        services.AddTransient<IBildirimKanali>(sp => sp.GetRequiredService<NtfyKanali>());
+        services.AddTransient<IBildirimKanali>(sp => sp.GetRequiredService<TwilioSmsKanali>());
+
+        // Gönderim kuyruğu ve arka plan servisi.
+        services.AddSingleton<BildirimKuyrugu>();
+        services.AddSingleton<IBildirimKuyrugu>(sp => sp.GetRequiredService<BildirimKuyrugu>());
+        services.AddScoped<IDisBildirimGonderici, DisBildirimGonderici>();
+        services.AddHostedService<BildirimGonderimArkaPlanServisi>();
         services.AddScoped<ITanimService, TanimService>();
 
         return services;

@@ -1,4 +1,5 @@
 using KanBagis.Business.Bagiscilar;
+using KanBagis.Business.DisServisler;
 using KanBagis.Business.Paneller;
 using KanBagis.Business.Talepler;
 using KanBagis.Business.Tanimlar;
@@ -8,6 +9,7 @@ using KanBagis.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Options;
 
 namespace KanBagis.Web.Controllers;
 
@@ -22,7 +24,9 @@ public class BagisciPanelController(
     IPanelService paneller,
     IBagisciService bagiscilar,
     IBildirimService bildirimServisi,
-    ITanimService tanimlar) : Controller
+    ITanimService tanimlar,
+    IOptions<NtfyAyarlari> ntfy,
+    IOptions<TwilioAyarlari> twilio) : Controller
 {
     /// <summary>
     /// Bağışçı Id'si URL'den ya da formdan değil, imzalı oturum çerezinden okunur:
@@ -96,9 +100,40 @@ public class BagisciPanelController(
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>Telefona anlık bildirimi açar/kapatır (rastgele kanal üretilir ya da silinir).</summary>
+    [HttpPost]
+    public async Task<IActionResult> AnlikBildirim(bool ac)
+    {
+        if (OturumdakiBagisciId is not { } bagisciId) return Forbid();
+
+        var sonuc = await bagiscilar.AnlikBildirimAyarlaAsync(bagisciId, ac);
+        TempData[sonuc.Basarili ? "Mesaj" : "Hata"] = sonuc.Basarili
+            ? (ac ? "Anlık bildirim açıldı. Telefonundaki ntfy uygulamasında aşağıdaki kanala abone ol." : "Anlık bildirim kapatıldı.")
+            : sonuc.Hata;
+        return RedirectToAction(nameof(Profil));
+    }
+
+    /// <summary>SMS izni (açık rıza).</summary>
+    [HttpPost]
+    public async Task<IActionResult> SmsIzni(bool izin)
+    {
+        if (OturumdakiBagisciId is not { } bagisciId) return Forbid();
+
+        var sonuc = await bagiscilar.SmsIzniAyarlaAsync(bagisciId, izin);
+        TempData[sonuc.Basarili ? "Mesaj" : "Hata"] = sonuc.Basarili
+            ? (izin ? "SMS ile bildirim almayı kabul ettiniz." : "SMS izni geri alındı.")
+            : sonuc.Hata;
+        return RedirectToAction(nameof(Profil));
+    }
+
     private async Task<BagisciProfilViewModel> GosterimAlanlariniDoldurAsync(BagisciProfilViewModel model, BagisciProfili profil)
     {
         var b = profil.Bagisci;
+        model.AnlikServisAcik = ntfy.Value.Etkin;
+        model.AnlikKanal = b.AnlikBildirimKanali;
+        model.AnlikAbonelikAdresi = b.AnlikBildirimKanali is { } kanal ? $"{ntfy.Value.TemelAdres.TrimEnd('/')}/{kanal}" : null;
+        model.SmsServisAcik = twilio.Value.Etkin;
+        model.SmsIzni = b.SmsIzni;
         model.AdSoyad = $"{b.Ad} {b.Soyad}";
         model.TcMaskeli = $"{b.TcKimlikNo[..3]}*****{b.TcKimlikNo[^3..]}";   // ekranda tamamı gösterilmez
         model.DogumTarihi = b.DogumTarihi;

@@ -10,6 +10,21 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.2.0] — 2026-11-16 · Harici API entegrasyonu
+
+### Eklendi
+- **Harita / yol mesafesi (OSRM):** Eşleştirme adayları gerçek **yol** mesafesine göre sıralanıyor; bağışçı panelinde hastaneye yol mesafesi, süresi ve OpenStreetMap yol tarifi bağlantısı var. Sonuçlar önbelleğe alınıyor.
+- **Telefona bildirim:** ntfy ile anlık bildirim (push; bağışçı rastgele kanalına abone olur) ve Twilio ile SMS (yalnızca izin verilirse). Gönderim arka planda, kuyrukla yapılıyor.
+- **Hata yönetimi:** zaman aşımı, ağ hatası, 5xx, 4xx, 429 (Retry-After), bozuk JSON. Mesafede kuş uçuşuna dönülüyor; bildirimde üstel geri çekilmeyle yeniden deneniyor. Gönderim durumu, deneme sayısı ve son hata kaydediliyor.
+- Bağışçı profilinde "Telefon bildirimleri" bölümü; kurum talep sayfasında telefon gönderim özeti.
+- Anahtarlar yalnızca ortam değişkeninden okunuyor (`DisServisler__…`); `appsettings.json`'da gizli değer yok.
+- `docs/Harici-API.md`; 36 yeni test (toplam 190).
+
+### Değişti
+- Eşleştirme sıralamasında kuş uçuşu yerine yol mesafesi kullanılıyor (API yanıt vermezse kuş uçuşu).
+
+---
+
 ## [0.1.0] — 2026-11-12 · Vize ara sürümü
 
 İlk çalışan ara sürüm: kullanıcı, veritabanı ve iki çekirdek modül uçtan uca entegre.

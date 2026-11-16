@@ -18,6 +18,15 @@ public interface IBildirimRepository : IRepository<Bildirim>
     Task<bool> AcikTalepteKabulVarMiAsync(int bagisciId, int haricBildirimId);
 
     Task OkunduIsaretleAsync(int bagisciId);
+
+    /// <summary>Telefona gönderim için bildirim + bağışçı + talep (hastane, kan grubu). Değişiklik takibi açık.</summary>
+    Task<Bildirim?> GonderimIcinGetirAsync(int bildirimId);
+
+    /// <summary>Uygulama yeniden başladığında gönderilmeyi bekleyen bildirimler.</summary>
+    Task<List<int>> KuyruktakiIdlerAsync();
+
+    /// <summary>Takip edilen değişiklikleri kaydeder (yalnızca değişen alanlar yazılır).</summary>
+    Task KaydetAsync();
 }
 
 public class BildirimRepository(KanBagisDbContext context) : EfRepository<Bildirim>(context), IBildirimRepository
@@ -40,6 +49,17 @@ public class BildirimRepository(KanBagisDbContext context) : EfRepository<Bildir
                          && b.Id != haricBildirimId
                          && b.Yanit == BildirimYaniti.Kabul
                          && b.KanTalebi.Durum == TalepDurumu.Acik);
+
+    public Task<Bildirim?> GonderimIcinGetirAsync(int bildirimId) =>
+        Tablo.Include(b => b.Bagisci)
+             .Include(b => b.KanTalebi).ThenInclude(t => t.Hastane)
+             .Include(b => b.KanTalebi).ThenInclude(t => t.KanGrubu)
+             .FirstOrDefaultAsync(b => b.Id == bildirimId);
+
+    public Task<List<int>> KuyruktakiIdlerAsync() =>
+        Tablo.Where(b => b.DisKanalDurumu == DisKanalDurumu.Kuyrukta).Select(b => b.Id).ToListAsync();
+
+    public Task KaydetAsync() => Context.SaveChangesAsync();
 
     public Task OkunduIsaretleAsync(int bagisciId) =>
         Tablo.Where(b => b.BagisciId == bagisciId && !b.Okundu)

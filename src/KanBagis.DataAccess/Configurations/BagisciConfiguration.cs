@@ -22,6 +22,7 @@ public class BagisciConfiguration : IEntityTypeConfiguration<Bagisci>
         builder.Property(b => b.Telefon).IsRequired().HasMaxLength(15);
         builder.Property(b => b.Eposta).HasMaxLength(100);
         builder.Property(b => b.Sehir).IsRequired().HasMaxLength(30);
+        builder.Property(b => b.AnlikBildirimKanali).HasMaxLength(64);
 
         // TC kimlik no benzersiz: aynı kişi iki kez kayıt olamaz.
         builder.HasIndex(b => b.TcKimlikNo).IsUnique();

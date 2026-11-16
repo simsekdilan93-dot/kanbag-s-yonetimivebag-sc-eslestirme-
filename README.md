@@ -2,7 +2,7 @@
 
 Kan bağışçılarını, hastanelerin kan taleplerini ve kan stoğunu tek bir yerden yöneten web uygulaması. Bir kan grubu için talep açıldığında sistem uygun bağışçılara bildirim gönderir.
 
-**Güncel sürüm: [v0.1.0](https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-/releases/tag/v0.1.0) (vize ara sürümü)** · [Sürüm notları](CHANGELOG.md) · [Demo senaryosu](docs/Demo-Senaryosu.md)
+**Güncel sürüm: [v0.2.0](https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-/releases/tag/v0.2.0) (harici API entegrasyonu)** · [Sürüm notları](CHANGELOG.md) · [Demo senaryosu](docs/Demo-Senaryosu.md)
 
 ## Özellikler
 
@@ -11,6 +11,7 @@ Kan bağışçılarını, hastanelerin kan taleplerini ve kan stoğunu tek bir y
 - ✅ Hastane kan talebi oluşturma (normal / acil)
 - ✅ Kan grubu uyumluluğu ve konuma (mesafeye) göre eşleştirme, bildirim gönderme ve yanıt takibi
 - ✅ Bağış kaydı → kan stoğu artışı → talebin kendiliğinden kapanması (uçtan uca)
+- ✅ Gerçek yol mesafesi (OSRM) ve telefona anlık bildirim (ntfy) / SMS (Twilio)
 
 ## Teknolojiler
 
@@ -38,12 +39,13 @@ docs/
 ├── Mimari.md              Katmanlı mimari şeması
 ├── Guvenlik-Notu.md       Kimlik doğrulama ve yetkilendirme güvenlik notu
 ├── moduller/              Modül açıklamaları (Bağışçı ve Kan Grubu, Talep ve Eşleştirme)
+├── Harici-API.md          Harita ve bildirim API'leri, hata yönetimi, anahtarlar
 ├── Demo-Senaryosu.md      Vize demosu adım adım
 ├── Vize-Hazirlik.md       Vize sözlü soruları ve cevapları
 └── db/                    SQL şema, örnek sorgular, indeks açıklamaları
 ```
 
-Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Vize hazırlık](docs/Vize-Hazirlik.md)
+Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Vize hazırlık](docs/Vize-Hazirlik.md) · [Harici API](docs/Harici-API.md)
 
 ## Çalıştırma
 
@@ -74,3 +76,4 @@ dotnet test
 - [x] **Hafta 6:** Bağışçı kaydı ve kan grubu yönetimi: ABO/Rh modeli ve uyumluluk, bağış uygunluk kuralı, TC algoritması, 81 il listesi, profil düzenleme (sahiplik kontrolü), kan grubu kilidi
 - [x] **Hafta 7:** Talep ve grup/konum eşleştirme: talep açma, uyumlu + uygun bağışçıları mesafeye göre sıralama (Haversine), aciliyete göre yarıçap ve bildirim kotası, Kabul/Red yanıtı, kurumun kabul edenleri görmesi
 - [x] **Hafta 8 (VİZE):** Uçtan uca entegrasyon (bağış kaydı → stok → talep kapanışı), bilinen hataların giderilmesi, entegrasyon testleri, `v0.1.0` sürüm etiketi, demo senaryosu ve sözlü hazırlık
+- [x] **Hafta 9:** Harici API entegrasyonu: OSRM ile yol mesafesi ve yol tarifi, ntfy ile anlık bildirim, Twilio ile SMS, arka planda gönderim kuyruğu, zaman aşımı / yeniden deneme / hız sınırı yönetimi, anahtarların ortam değişkeninde saklanması (`v0.2.0`)

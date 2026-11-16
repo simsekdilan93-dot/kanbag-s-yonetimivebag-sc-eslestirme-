@@ -660,3 +660,145 @@ COMMIT;
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261112154930_BagisTalepBaglantisi', '10.0.13');
 
+BEGIN TRANSACTION;
+ALTER TABLE "Bildirimler" ADD "DisKanalDeneme" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "Bildirimler" ADD "DisKanalDurumu" TEXT NOT NULL DEFAULT 'Yok';
+
+ALTER TABLE "Bildirimler" ADD "DisKanalHata" TEXT NULL;
+
+ALTER TABLE "Bildirimler" ADD "DisKanalTarihi" TEXT NULL;
+
+ALTER TABLE "Bagiscilar" ADD "AnlikBildirimKanali" TEXT NULL;
+
+ALTER TABLE "Bagiscilar" ADD "SmsIzni" INTEGER NOT NULL DEFAULT 0;
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 5;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 6;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 7;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 8;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 9;
+SELECT changes();
+
+
+UPDATE "Bagiscilar" SET "AnlikBildirimKanali" = NULL, "SmsIzni" = 0
+WHERE "Id" = 10;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "DisKanalDeneme" = 0, "DisKanalHata" = NULL, "DisKanalTarihi" = NULL
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "DisKanalDeneme" = 0, "DisKanalHata" = NULL, "DisKanalTarihi" = NULL
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "DisKanalDeneme" = 0, "DisKanalHata" = NULL, "DisKanalTarihi" = NULL
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "DisKanalDeneme" = 0, "DisKanalHata" = NULL, "DisKanalTarihi" = NULL
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "Bildirimler" SET "DisKanalDeneme" = 0, "DisKanalHata" = NULL, "DisKanalTarihi" = NULL
+WHERE "Id" = 5;
+SELECT changes();
+
+
+CREATE INDEX "IX_Bildirimler_DisKanalDurumu" ON "Bildirimler" ("DisKanalDurumu");
+
+CREATE TABLE "ef_temp_Bildirimler" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Bildirimler" PRIMARY KEY AUTOINCREMENT,
+    "BagisciId" INTEGER NOT NULL,
+    "DisKanalDeneme" INTEGER NOT NULL,
+    "DisKanalDurumu" TEXT NOT NULL DEFAULT 'Yok',
+    "DisKanalHata" TEXT NULL,
+    "DisKanalTarihi" TEXT NULL,
+    "GonderimTarihi" TEXT NOT NULL,
+    "KanTalebiId" INTEGER NOT NULL,
+    "Mesaj" TEXT NOT NULL,
+    "Okundu" INTEGER NOT NULL,
+    "Yanit" TEXT NOT NULL,
+    "YanitTarihi" TEXT NULL,
+    CONSTRAINT "CK_Bildirim_DisKanalDeneme" CHECK (DisKanalDeneme >= 0),
+    CONSTRAINT "CK_Bildirim_DisKanalDurumu" CHECK (DisKanalDurumu IN ('Yok', 'Kuyrukta', 'Gonderildi', 'Basarisiz')),
+    CONSTRAINT "CK_Bildirim_Yanit" CHECK (Yanit IN ('Beklemede', 'Kabul', 'Red')),
+    CONSTRAINT "CK_Bildirim_YanitTarihi" CHECK ((Yanit = 'Beklemede' AND YanitTarihi IS NULL) OR (Yanit <> 'Beklemede' AND YanitTarihi IS NOT NULL)),
+    CONSTRAINT "FK_Bildirimler_Bagiscilar_BagisciId" FOREIGN KEY ("BagisciId") REFERENCES "Bagiscilar" ("Id") ON DELETE CASCADE,
+    CONSTRAINT "FK_Bildirimler_KanTalepleri_KanTalebiId" FOREIGN KEY ("KanTalebiId") REFERENCES "KanTalepleri" ("Id") ON DELETE CASCADE
+);
+
+INSERT INTO "ef_temp_Bildirimler" ("Id", "BagisciId", "DisKanalDeneme", "DisKanalDurumu", "DisKanalHata", "DisKanalTarihi", "GonderimTarihi", "KanTalebiId", "Mesaj", "Okundu", "Yanit", "YanitTarihi")
+SELECT "Id", "BagisciId", "DisKanalDeneme", "DisKanalDurumu", "DisKanalHata", "DisKanalTarihi", "GonderimTarihi", "KanTalebiId", "Mesaj", "Okundu", "Yanit", "YanitTarihi"
+FROM "Bildirimler";
+
+COMMIT;
+
+PRAGMA foreign_keys = 0;
+
+BEGIN TRANSACTION;
+DROP TABLE "Bildirimler";
+
+ALTER TABLE "ef_temp_Bildirimler" RENAME TO "Bildirimler";
+
+COMMIT;
+
+PRAGMA foreign_keys = 1;
+
+BEGIN TRANSACTION;
+CREATE UNIQUE INDEX "IX_Bildirimler_BagisciId_KanTalebiId" ON "Bildirimler" ("BagisciId", "KanTalebiId");
+
+CREATE INDEX "IX_Bildirimler_BagisciId_Yanit" ON "Bildirimler" ("BagisciId", "Yanit");
+
+CREATE INDEX "IX_Bildirimler_DisKanalDurumu" ON "Bildirimler" ("DisKanalDurumu");
+
+CREATE INDEX "IX_Bildirimler_KanTalebiId" ON "Bildirimler" ("KanTalebiId");
+
+COMMIT;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261116201945_TelefonBildirimKanallari', '10.0.13');
+

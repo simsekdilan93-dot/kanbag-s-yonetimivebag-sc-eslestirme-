@@ -1,5 +1,8 @@
+using System.Security.Cryptography;
+using KanBagis.Business.DisServisler;
 using KanBagis.DataAccess.Repositories;
 using KanBagis.Entities;
+using Microsoft.Extensions.Options;
 
 namespace KanBagis.Business.Bagiscilar;
 
@@ -21,13 +24,16 @@ public interface IBagisciService
 {
     Task<BagisciProfili?> ProfilGetirAsync(int bagisciId);
     Task<IslemSonucu> ProfilGuncelleAsync(int bagisciId, ProfilGuncellemeIstegi istek);
+    Task<IslemSonucu> AnlikBildirimAyarlaAsync(int bagisciId, bool ac);
+    Task<IslemSonucu> SmsIzniAyarlaAsync(int bagisciId, bool izin);
 }
 
 /// <summary>Bağışçı Kaydı ve Kan Grubu Yönetimi modülünün iş servisi.</summary>
 public sealed class BagisciService(
     IBagisciRepository bagiscilar,
     IRepository<KanGrubu> kanGruplari,
-    BagisUygunlukKurali uygunlukKurali) : IBagisciService
+    BagisUygunlukKurali uygunlukKurali,
+    IOptions<NtfyAyarlari>? ntfyAyarlari = null) : IBagisciService
 {
     public async Task<BagisciProfili?> ProfilGetirAsync(int bagisciId)
     {
@@ -72,6 +78,35 @@ public sealed class BagisciService(
         bagisci.Sehir = istek.Il;
         bagisci.Kilo = istek.Kilo;
 
+        await bagiscilar.GuncelleAsync(bagisci);
+        return IslemSonucu.Tamam;
+    }
+
+    /// <summary>
+    /// Telefona anlık bildirimi açar/kapatır. Açıldığında 20 karakterlik RASTGELE bir kanal adı üretilir:
+    /// ntfy'de kanal adını bilen herkes mesajları okuyabildiği için ad tahmin edilemez olmalıdır.
+    /// Kapatıp yeniden açınca yeni ad üretilir (eski adı bilen biri artık bir şey göremez).
+    /// </summary>
+    public async Task<IslemSonucu> AnlikBildirimAyarlaAsync(int bagisciId, bool ac)
+    {
+        var bagisci = await bagiscilar.IdIleGetirAsync(bagisciId);
+        if (bagisci is null) return IslemSonucu.Hatali("Bağışçı bulunamadı.");
+
+        var onek = ntfyAyarlari?.Value.KanalOneki ?? "kanbagis";
+        bagisci.AnlikBildirimKanali = ac
+            ? $"{onek}-{RandomNumberGenerator.GetString("abcdefghijkmnpqrstuvwxyz23456789", 20)}"
+            : null;
+        await bagiscilar.GuncelleAsync(bagisci);
+        return IslemSonucu.Tamam;
+    }
+
+    /// <summary>SMS izni (açık rıza). Telefon numarası SMS servisine yalnızca izin verilirse gönderilir.</summary>
+    public async Task<IslemSonucu> SmsIzniAyarlaAsync(int bagisciId, bool izin)
+    {
+        var bagisci = await bagiscilar.IdIleGetirAsync(bagisciId);
+        if (bagisci is null) return IslemSonucu.Hatali("Bağışçı bulunamadı.");
+
+        bagisci.SmsIzni = izin;
         await bagiscilar.GuncelleAsync(bagisci);
         return IslemSonucu.Tamam;
     }

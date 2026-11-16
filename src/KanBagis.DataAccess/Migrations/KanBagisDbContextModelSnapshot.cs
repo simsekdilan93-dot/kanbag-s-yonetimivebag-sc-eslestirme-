@@ -109,6 +109,10 @@ namespace KanBagis.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("AnlikBildirimKanali")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Cinsiyet")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -131,6 +135,9 @@ namespace KanBagis.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("SmsIzni")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Soyad")
                         .IsRequired()
@@ -173,6 +180,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 1,
                             Kilo = 62,
                             Sehir = "Bingöl",
+                            SmsIzni = false,
                             Soyad = "Yılmaz",
                             TcKimlikNo = "99900000001",
                             Telefon = "05550000001"
@@ -187,6 +195,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 8,
                             Kilo = 84,
                             Sehir = "Bingöl",
+                            SmsIzni = false,
                             Soyad = "Kaya",
                             TcKimlikNo = "99900000002",
                             Telefon = "05550000002"
@@ -200,6 +209,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 3,
                             Kilo = 55,
                             Sehir = "Elazığ",
+                            SmsIzni = false,
                             Soyad = "Demir",
                             TcKimlikNo = "99900000003",
                             Telefon = "05550000003"
@@ -214,6 +224,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 1,
                             Kilo = 78,
                             Sehir = "Bingöl",
+                            SmsIzni = false,
                             Soyad = "Çelik",
                             TcKimlikNo = "99900000004",
                             Telefon = "05550000004"
@@ -228,6 +239,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 8,
                             Kilo = 58,
                             Sehir = "Elazığ",
+                            SmsIzni = false,
                             Soyad = "Şahin",
                             TcKimlikNo = "99900000005",
                             Telefon = "05550000005"
@@ -241,6 +253,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 5,
                             Kilo = 91,
                             Sehir = "Diyarbakır",
+                            SmsIzni = false,
                             Soyad = "Arslan",
                             TcKimlikNo = "99900000006",
                             Telefon = "05550000006"
@@ -255,6 +268,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 7,
                             Kilo = 67,
                             Sehir = "Bingöl",
+                            SmsIzni = false,
                             Soyad = "Doğan",
                             TcKimlikNo = "99900000007",
                             Telefon = "05550000007"
@@ -269,6 +283,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 2,
                             Kilo = 73,
                             Sehir = "Diyarbakır",
+                            SmsIzni = false,
                             Soyad = "Koç",
                             TcKimlikNo = "99900000008",
                             Telefon = "05550000008"
@@ -282,6 +297,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 4,
                             Kilo = 52,
                             Sehir = "Bingöl",
+                            SmsIzni = false,
                             Soyad = "Aydın",
                             TcKimlikNo = "99900000009",
                             Telefon = "05550000009"
@@ -296,6 +312,7 @@ namespace KanBagis.DataAccess.Migrations
                             KanGrubuId = 8,
                             Kilo = 88,
                             Sehir = "Bingöl",
+                            SmsIzni = false,
                             Soyad = "Öztürk",
                             TcKimlikNo = "99900000010",
                             Telefon = "05550000010"
@@ -310,6 +327,23 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.Property<int>("BagisciId")
                         .HasColumnType("INTEGER");
+
+                    b.Property<int>("DisKanalDeneme")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DisKanalDurumu")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(12)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Yok");
+
+                    b.Property<string>("DisKanalHata")
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("DisKanalTarihi")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("GonderimTarihi")
                         .HasColumnType("TEXT");
@@ -335,6 +369,8 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DisKanalDurumu");
+
                     b.HasIndex("KanTalebiId");
 
                     b.HasIndex("BagisciId", "KanTalebiId")
@@ -344,6 +380,10 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.ToTable("Bildirimler", null, t =>
                         {
+                            t.HasCheckConstraint("CK_Bildirim_DisKanalDeneme", "DisKanalDeneme >= 0");
+
+                            t.HasCheckConstraint("CK_Bildirim_DisKanalDurumu", "DisKanalDurumu IN ('Yok', 'Kuyrukta', 'Gonderildi', 'Basarisiz')");
+
                             t.HasCheckConstraint("CK_Bildirim_Yanit", "Yanit IN ('Beklemede', 'Kabul', 'Red')");
 
                             t.HasCheckConstraint("CK_Bildirim_YanitTarihi", "(Yanit = 'Beklemede' AND YanitTarihi IS NULL) OR (Yanit <> 'Beklemede' AND YanitTarihi IS NOT NULL)");
@@ -354,6 +394,8 @@ namespace KanBagis.DataAccess.Migrations
                         {
                             Id = 1,
                             BagisciId = 2,
+                            DisKanalDeneme = 0,
+                            DisKanalDurumu = "Yok",
                             GonderimTarihi = new DateTime(2026, 10, 10, 8, 35, 0, 0, DateTimeKind.Utc),
                             KanTalebiId = 1,
                             Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.",
@@ -365,6 +407,8 @@ namespace KanBagis.DataAccess.Migrations
                         {
                             Id = 2,
                             BagisciId = 5,
+                            DisKanalDeneme = 0,
+                            DisKanalDurumu = "Yok",
                             GonderimTarihi = new DateTime(2026, 10, 10, 8, 35, 0, 0, DateTimeKind.Utc),
                             KanTalebiId = 1,
                             Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.",
@@ -376,6 +420,8 @@ namespace KanBagis.DataAccess.Migrations
                         {
                             Id = 3,
                             BagisciId = 10,
+                            DisKanalDeneme = 0,
+                            DisKanalDurumu = "Yok",
                             GonderimTarihi = new DateTime(2026, 10, 10, 8, 35, 0, 0, DateTimeKind.Utc),
                             KanTalebiId = 1,
                             Mesaj = "Örnek Devlet Hastanesi'nde acil 0 Rh- kan ihtiyacı var.",
@@ -386,6 +432,8 @@ namespace KanBagis.DataAccess.Migrations
                         {
                             Id = 4,
                             BagisciId = 1,
+                            DisKanalDeneme = 0,
+                            DisKanalDurumu = "Yok",
                             GonderimTarihi = new DateTime(2026, 10, 12, 14, 5, 0, 0, DateTimeKind.Utc),
                             KanTalebiId = 2,
                             Mesaj = "Örnek Şehir Hastanesi'nde A Rh+ kan ihtiyacı var.",
@@ -396,6 +444,8 @@ namespace KanBagis.DataAccess.Migrations
                         {
                             Id = 5,
                             BagisciId = 4,
+                            DisKanalDeneme = 0,
+                            DisKanalDurumu = "Yok",
                             GonderimTarihi = new DateTime(2026, 10, 12, 14, 5, 0, 0, DateTimeKind.Utc),
                             KanTalebiId = 2,
                             Mesaj = "Örnek Şehir Hastanesi'nde A Rh+ kan ihtiyacı var.",

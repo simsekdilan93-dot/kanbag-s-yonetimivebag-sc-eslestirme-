@@ -10,6 +10,12 @@ public class Bildirim : IEntity
     public BildirimYaniti Yanit { get; set; } = BildirimYaniti.Beklemede;
     public DateTime? YanitTarihi { get; set; }
 
+    // ---- Telefona gönderim (harici API) ----
+    public DisKanalDurumu DisKanalDurumu { get; set; } = DisKanalDurumu.Yok;
+    public int DisKanalDeneme { get; set; }
+    public string? DisKanalHata { get; set; }
+    public DateTime? DisKanalTarihi { get; set; }
+
     public int BagisciId { get; set; }
     public Bagisci Bagisci { get; set; } = null!;
 
