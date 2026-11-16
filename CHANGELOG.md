@@ -10,6 +10,19 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.3.0] — 2026-11-16 · Yapay zekâ bileşeni: talep ve stok tahmini
+
+### Eklendi
+- **Stok tahmini sayfası (kurum):** kan grubu başına gelecek hafta talep tahmini, stok karşılama süresi ve risk (Kritik/Yüksek/Orta/Düşük).
+- **İstatistiksel taban tahmin:** 12 haftalık ortalama + doğrusal eğilim; az veride "veri yetersiz".
+- **Yapay zekâ katmanı:** Anthropic Claude (`claude-opus-5-5`), resmî C# SDK, JSON şemalı yapılandırılmış çıktı, ret yedeği (`fallbacks: "default"`). Modele yalnızca toplu sayılar gider.
+- **Çıktı doğrulama:** bozuk/boş/eksik çıktı reddedilir, uçuk değerler düzeltilir; yapay zekâ taban tahminin kritik/yüksek uyarısını düşüremez. Hata, zaman aşımı ve retlerde istatistiksel tahmine dönülür.
+- **AI kullanım günlüğü:** `TahminKayitlari` tablosu; istem, ham çıktı, doğrulama notları, model, süre. `/Tahmin/Gunluk` sayfası.
+- Şeffaflık notu ve kaynak etiketi; demo için işaretli sentetik talep geçmişi.
+- `docs/Yapay-Zeka-Bileseni.md`; 38 yeni test (toplam 228).
+
+---
+
 ## [0.2.0] — 2026-11-16 · Harici API entegrasyonu
 
 ### Eklendi

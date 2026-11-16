@@ -3,6 +3,7 @@ using KanBagis.Business.DisServisler;
 using KanBagis.Business.Guvenlik;
 using KanBagis.Business.Kimlik;
 using KanBagis.Business.Paneller;
+using KanBagis.Business.Tahmin;
 using KanBagis.Business.Talepler;
 using KanBagis.Business.Tanimlar;
 using KanBagis.DataAccess;
@@ -50,6 +51,10 @@ public static class DependencyInjection
         services.AddScoped<IDisBildirimGonderici, DisBildirimGonderici>();
         services.AddHostedService<BildirimGonderimArkaPlanServisi>();
         services.AddScoped<ITanimService, TanimService>();
+
+        // ---- Yapay zekâ bileşeni (Hafta 10): talep ve stok tahmini. Anahtar yoksa istatistiksel tahmin kullanılır.
+        services.AddSingleton<ILlmIstemcisi, AnthropicLlmIstemcisi>();
+        services.AddScoped<ITahminService, TahminService>();
 
         return services;
     }

@@ -1,0 +1,38 @@
+@using KanBagis.Business.Tahmin
+@model List<TahminKaydi>
+@{
+    ViewData["Title"] = "AI kullanım günlüğü";
+}
+
+<h1 class="h3 mb-1">AI kullanım günlüğü</h1>
+<p class="text-muted">Her tahmin çalıştırmasında modele gönderilen istem, modelin ham çıktısı ve doğrulamada yapılan düzeltmeler saklanır.</p>
+
+@if (Model.Count == 0)
+{
+    <p class="text-muted">Henüz kayıt yok.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr><th>#</th><th>Tarih</th><th>Kaynak</th><th>Model</th><th class="text-end">Süre</th><th>Doğrulama</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var k in Model)
+                {
+                    var notSayisi = k.DogrulamaNotlari?.Split('\n').Length ?? 0;
+                    <tr>
+                        <td><a asp-action="Kayit" asp-route-id="@k.Id">#@k.Id</a></td>
+                        <td>@k.Tarih.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        <td><span class="badge @Gorunum.TahminKaynakRozeti(k.Kaynak)">@RiskMetinleri.Kaynak(k.Kaynak)</span></td>
+                        <td class="small">@(k.Model ?? "—")</td>
+                        <td class="text-end small">@(k.SureMilisaniye > 0 ? $"{k.SureMilisaniye / 1000.0:0.0} sn" : "—")</td>
+                        <td class="small">@(notSayisi == 0 ? "sorun yok" : $"{notSayisi} not")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+<a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Tahmin</a>

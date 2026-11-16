@@ -1,0 +1,35 @@
+@using KanBagis.Business.Tahmin
+@model TahminKaydi
+@{
+    ViewData["Title"] = $"Tahmin kaydı #{Model.Id}";
+}
+
+<h1 class="h3 mb-1">Tahmin kaydı #@Model.Id</h1>
+<p class="mb-3">
+    <span class="badge @Gorunum.TahminKaynakRozeti(Model.Kaynak)">@RiskMetinleri.Kaynak(Model.Kaynak)</span>
+    <span class="small text-muted ms-2">@Model.Tarih.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")
+        · model: @(Model.Model ?? "—") · süre: @(Model.SureMilisaniye / 1000.0) sn</span>
+</p>
+
+<h2 class="h6">1. İstem @(Model.Model is null ? "(hazırlandı; yapay zekâ kapalı olduğu için gönderilmedi)" : "(modele gönderilen)")</h2>
+<pre class="border rounded bg-light p-2 small" style="white-space: pre-wrap; max-height: 24rem; overflow:auto">@(Model.Istem ?? "(yapay zekâ çağrılmadı)")</pre>
+
+<h2 class="h6">2. Ham çıktı (doğrulamadan önce)</h2>
+<pre class="border rounded bg-light p-2 small" style="white-space: pre-wrap; max-height: 24rem; overflow:auto">@(Model.HamCikti ?? "(çıktı yok)")</pre>
+
+<h2 class="h6">3. Doğrulama notları</h2>
+@if (string.IsNullOrEmpty(Model.DogrulamaNotlari))
+{
+    <p class="small text-success">Çıktı tüm kontrollerden düzeltme gerekmeden geçti.</p>
+}
+else
+{
+    <ul class="small">
+        @foreach (var n in Model.DogrulamaNotlari.Split('\n')) { <li>@n</li> }
+    </ul>
+}
+
+<h2 class="h6">4. Gösterilen sonuç</h2>
+<pre class="border rounded bg-light p-2 small" style="white-space: pre-wrap; max-height: 24rem; overflow:auto">@Model.SonucJson</pre>
+
+<a asp-action="Gunluk" class="btn btn-outline-secondary btn-sm">← Günlük</a>

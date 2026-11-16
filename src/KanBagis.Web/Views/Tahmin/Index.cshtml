@@ -1,0 +1,107 @@
+@using KanBagis.Business.Tahmin
+@model TahminSonucu?
+@{
+    ViewData["Title"] = "Talep ve stok tahmini";
+    var yapayZeka = (bool)ViewBag.YapayZeka;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">Talep ve stok tahmini</h1>
+        <p class="text-muted mb-0">Gelecek hafta için kan grubu bazında talep tahmini ve stok riski (son 12 hafta).</p>
+    </div>
+    <div class="d-flex gap-2">
+        <form asp-action="Calistir" method="post">
+            <button type="submit" class="btn btn-danger">Tahmini güncelle</button>
+        </form>
+        <a asp-action="Gunluk" class="btn btn-outline-secondary">AI kullanım günlüğü</a>
+    </div>
+</div>
+
+<div class="alert @(yapayZeka ? "alert-info" : "alert-secondary") small">
+    <strong>Şeffaflık:</strong>
+    @if (yapayZeka)
+    {
+        <text>Tahmin bir yapay zekâ modeli (Claude) tarafından üretilir ve uygulama tarafından doğrulanır.
+        Modele yalnızca kan grubu bazında toplu sayılar gönderilir; bağışçı bilgisi gönderilmez.</text>
+    }
+    else
+    {
+        <text>Yapay zekâ kapalı (API anahtarı tanımlı değil). Tahminler istatistiksel yöntemle (ortalama + doğrusal eğilim) hesaplanır.</text>
+    }
+    Tahminler karar desteğidir; nihai karar kurum yetkilisine aittir.
+</div>
+
+@if (Model is null)
+{
+    <p class="text-muted">Henüz tahmin yapılmadı. "Tahmini güncelle" ile başlatın.</p>
+}
+else
+{
+    <p class="mb-2">
+        <span class="badge @Gorunum.TahminKaynakRozeti(Model.Kaynak)">@RiskMetinleri.Kaynak(Model.Kaynak)</span>
+        <span class="small text-muted ms-2">@Model.Tarih.ToLocalTime().ToString("dd.MM.yyyy HH:mm")
+            @if (Model.Model is not null) { <text>· model: @Model.Model</text> }
+            · <a asp-action="Kayit" asp-route-id="@Model.KayitId">kayıt #@Model.KayitId</a></span>
+    </p>
+
+    @if (Model.GenelYorum is not null)
+    {
+        <div class="card mb-3"><div class="card-body py-2"><strong>Özet:</strong> @Model.GenelYorum</div></div>
+    }
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Kan grubu</th>
+                    <th class="text-end">Stok</th>
+                    <th class="text-end">Haftalık ort.</th>
+                    <th class="text-end">Eğilim</th>
+                    <th class="text-end">Gelecek hafta</th>
+                    <th class="text-end">Yeter (hafta)</th>
+                    <th>Risk</th>
+                    <th>Gerekçe</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var g in Model.Gruplar.OrderByDescending(x => x.Risk).ThenBy(x => x.KanGrubuId))
+                {
+                    <tr>
+                        <td class="fw-semibold">@g.KanGrubu</td>
+                        <td class="text-end">@g.Stok</td>
+                        <td class="text-end">@g.OrtalamaHaftalik.ToString("0.#")</td>
+                        <td class="text-end">@(g.VeriYetersiz ? "—" : g.HaftalikEgilim.ToString("+0.##;-0.##;0"))</td>
+                        <td class="text-end fw-semibold">@g.GelecekHaftaTahmini</td>
+                        <td class="text-end">@(g.KarsilamaHaftasi?.ToString("0.#") ?? "∞")</td>
+                        <td>
+                            <span class="badge @Gorunum.RiskRozeti(g.Risk)">@RiskMetinleri.Ad(g.Risk)</span>
+                            @if (g.VeriYetersiz)
+                            {
+                                <span class="badge text-bg-light border ms-1" title="Son 12 haftada az talep var">veri yetersiz</span>
+                            }
+                        </td>
+                        <td class="small">@g.Gerekce</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Notlar.Count > 0)
+    {
+        <details class="mb-3" open>
+            <summary class="small fw-semibold">Doğrulama notları (@Model.Notlar.Count)</summary>
+            <ul class="small mb-0 mt-1">
+                @foreach (var n in Model.Notlar) { <li>@n</li> }
+            </ul>
+        </details>
+    }
+}
+
+<hr />
+<form asp-action="SentetikGecmis" method="post" class="small text-muted">
+    Demo için talep geçmişi yoksa:
+    <button type="submit" class="btn btn-link btn-sm p-0 align-baseline">son 12 haftaya sentetik geçmiş ekle</button>
+    (gerçek veri değildir, "[Sentetik geçmiş]" olarak işaretlenir ve talep listenizde görünmez).
+</form>

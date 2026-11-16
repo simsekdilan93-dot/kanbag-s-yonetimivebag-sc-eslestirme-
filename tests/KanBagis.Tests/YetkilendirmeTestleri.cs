@@ -162,6 +162,47 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         Assert.Contains("genel verici", await yanit.Content.ReadAsStringAsync());
     }
 
+    // ---------------- Yapay zekâ tahmini (Hafta 10) ----------------
+
+    [Fact]
+    public async Task Tahmin_sayfasi_yalnizca_kuruma_acik()
+    {
+        var bagisci = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+        var yanit = await bagisci.GetAsync("/Tahmin");
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Contains("/Hesap/ErisimEngellendi", yanit.Headers.Location!.ToString());
+
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        Assert.Equal(HttpStatusCode.OK, (await kurum.GetAsync("/Tahmin/Gunluk")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Kurum_tahmini_calistirir_seffaflik_notu_ve_gunluk_kaydi_gorunur()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var token = await TokenAlAsync(kurum, "/Tahmin");
+
+        var yanit = await kurum.PostAsync("/Tahmin/Calistir", new FormUrlEncodedContent(
+            new Dictionary<string, string> { ["__RequestVerificationToken"] = token }));
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+
+        var html = await kurum.GetStringAsync("/Tahmin");
+        Assert.Contains("Şeffaflık:", html);
+        Assert.Contains("İstatistiksel tahmin (yapay zekâ kullanılmadı)", html);
+        Assert.Contains("0 Rh-", html);
+
+        var gunluk = await kurum.GetStringAsync("/Tahmin/Gunluk");
+        Assert.Contains("/Tahmin/Kayit/", gunluk);
+    }
+
+    [Fact]
+    public async Task Tahmin_calistirma_csrf_belirteci_olmadan_reddedilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var yanit = await kurum.PostAsync("/Tahmin/Calistir", new FormUrlEncodedContent([]));
+        Assert.Equal(HttpStatusCode.BadRequest, yanit.StatusCode);
+    }
+
     // ---------------- Talep ve eşleştirme: uçtan uca ----------------
 
     [Fact]
@@ -478,6 +519,7 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
             // Testler internete çıkmaz: yol mesafesi kuş uçuşu, anlık bildirim kapalı.
             builder.UseSetting("DisServisler:Mesafe:Etkin", "false");
             builder.UseSetting("DisServisler:Ntfy:Etkin", "false");
+            builder.UseSetting("DisServisler:YapayZeka:Etkin", "false");   // ANTHROPIC_API_KEY tanımlı olsa bile API çağrılmaz
             builder.ConfigureTestServices(services =>
                 services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher(iterasyon: 1_000)));
         }

@@ -1,3 +1,4 @@
+using KanBagis.DataAccess.Seed;
 using KanBagis.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ public class KanTalebiRepository(KanBagisDbContext context) : EfRepository<KanTa
     {
         var satirlar = await Tablo.AsNoTracking()
             .Where(t => t.HastaneId == hastaneId)
+            .Where(t => t.Aciklama != SentetikGecmis.Etiket)   // tahmin demosu için üretilen geçmiş listede görünmez
             .OrderByDescending(t => t.OlusturmaTarihi)
             .Select(t => new
             {

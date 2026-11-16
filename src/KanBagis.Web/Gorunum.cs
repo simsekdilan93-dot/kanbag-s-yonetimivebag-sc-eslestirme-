@@ -1,6 +1,7 @@
 using System.Globalization;
 using KanBagis.Business.DisServisler;
 using KanBagis.Business.Konum;
+using KanBagis.Business.Tahmin;
 using KanBagis.Entities;
 
 namespace KanBagis.Web;
@@ -20,6 +21,21 @@ public static class Gorunum
     {
         TalepDurumu.Acik => "text-bg-primary",
         TalepDurumu.Karsilandi => "text-bg-success",
+        _ => "text-bg-secondary",
+    };
+
+    public static string RiskRozeti(RiskSeviyesi risk) => risk switch
+    {
+        RiskSeviyesi.Kritik => "text-bg-danger",
+        RiskSeviyesi.Yuksek => "text-bg-warning",
+        RiskSeviyesi.Orta => "text-bg-info",
+        _ => "text-bg-success",
+    };
+
+    public static string TahminKaynakRozeti(TahminKaynagi kaynak) => kaynak switch
+    {
+        TahminKaynagi.YapayZeka => "text-bg-primary",
+        TahminKaynagi.YapayZekaDuzeltildi => "text-bg-warning",
         _ => "text-bg-secondary",
     };
 

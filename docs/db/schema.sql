@@ -802,3 +802,24 @@ COMMIT;
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261116201945_TelefonBildirimKanallari', '10.0.13');
 
+BEGIN TRANSACTION;
+CREATE TABLE "TahminKayitlari" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_TahminKayitlari" PRIMARY KEY AUTOINCREMENT,
+    "Tarih" TEXT NOT NULL,
+    "Kaynak" TEXT NOT NULL,
+    "Model" TEXT NULL,
+    "Istem" TEXT NULL,
+    "HamCikti" TEXT NULL,
+    "DogrulamaNotlari" TEXT NULL,
+    "SonucJson" TEXT NOT NULL,
+    "SureMilisaniye" INTEGER NOT NULL,
+    CONSTRAINT "CK_TahminKaydi_Sure" CHECK (SureMilisaniye >= 0)
+);
+
+CREATE INDEX "IX_TahminKayitlari_Tarih" ON "TahminKayitlari" ("Tarih");
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261116205428_TahminKayitlari', '10.0.13');
+
+COMMIT;
+

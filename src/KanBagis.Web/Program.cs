@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using KanBagis.Business;
 using KanBagis.Business.DisServisler;
+using KanBagis.Business.Tahmin;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,9 @@ builder.Services.Configure<MesafeApiAyarlari>(builder.Configuration.GetSection(M
 builder.Services.Configure<NtfyAyarlari>(builder.Configuration.GetSection(NtfyAyarlari.Bolum));
 builder.Services.Configure<TwilioAyarlari>(builder.Configuration.GetSection(TwilioAyarlari.Bolum));
 builder.Services.Configure<BildirimGonderimAyarlari>(builder.Configuration.GetSection(BildirimGonderimAyarlari.Bolum));
+
+// ---- Yapay zekâ bileşeni (Hafta 10). Anahtar: ANTHROPIC_API_KEY ortam değişkeni (depoya girmez).
+builder.Services.Configure<YapayZekaAyarlari>(builder.Configuration.GetSection(YapayZekaAyarlari.Bolum));
 
 // ---- Kimlik doğrulama: çerez (cookie) tabanlı oturum ----
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -67,11 +71,14 @@ await DependencyInjection.VeritabaniniHazirlaAsync(app.Services);
     var mesafe = app.Services.GetRequiredService<IOptions<MesafeApiAyarlari>>().Value;
     var ntfy = app.Services.GetRequiredService<IOptions<NtfyAyarlari>>().Value;
     var twilio = app.Services.GetRequiredService<IOptions<TwilioAyarlari>>().Value;
+    var yz = app.Services.GetRequiredService<IOptions<YapayZekaAyarlari>>().Value;
     log.LogInformation("Harici servisler — Yol mesafesi: {Mesafe}, Anlık bildirim (ntfy): {Ntfy}{Token}, SMS (Twilio): {Sms}",
         mesafe.Etkin ? "açık" : "kapalı (kuş uçuşu)",
         ntfy.Etkin ? "açık" : "kapalı",
         string.IsNullOrEmpty(ntfy.Token) ? "" : " (erişim belirteci tanımlı)",
         twilio.Etkin ? "açık" : "kapalı (ortam değişkenleri tanımlı değil)");
+    log.LogInformation("Yapay zekâ tahmini: {Durum}",
+        yz.Kullanilabilir ? $"açık ({yz.Model})" : "kapalı (ANTHROPIC_API_KEY yok) — istatistiksel tahmin kullanılır");
 }
 
 // Configure the HTTP request pipeline.

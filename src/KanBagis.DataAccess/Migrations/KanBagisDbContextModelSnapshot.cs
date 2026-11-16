@@ -823,6 +823,50 @@ namespace KanBagis.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("KanBagis.Entities.TahminKaydi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DogrulamaNotlari")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HamCikti")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Istem")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kaynak")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SonucJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SureMilisaniye")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Tarih")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Tarih");
+
+                    b.ToTable("TahminKayitlari", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_TahminKaydi_Sure", "SureMilisaniye >= 0");
+                        });
+                });
+
             modelBuilder.Entity("KanBagis.Entities.Bagis", b =>
                 {
                     b.HasOne("KanBagis.Entities.Bagisci", "Bagisci")
