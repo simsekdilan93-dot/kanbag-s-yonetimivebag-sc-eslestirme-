@@ -12,6 +12,7 @@ Her düzeltilen hatanın bir testi vardır; hata geri gelirse test kırmızıya 
 | H13-03 | "İlker@…" (Türkçe büyük İ) ile giriş yapılamıyor, aynı adres ikinci kez kaydedilebiliyor | Orta | Düzeltildi | `H13_03_*` (4 test) |
 | H13-04 | Aynı anda gelen isteklerle aynı kan grubu için birden çok açık talep açılabiliyordu (yarış durumu) | Yüksek | Düzeltildi | `H13_04_*` (3 test) |
 | H13-05 | H13-04 düzeltilirken: başarısız talep eklemede "Collection was modified" istisnası | Yüksek | Düzeltildi | `H13_04_Ayni_anda_*` |
+| H13-06 | H13-03 düzeltildikten sonra tarayıcıda: giriş formu "İlker@…" adresini "Geçerli bir e-posta girin" diyerek sunucuya göndermiyordu | Orta | Düzeltildi | `H13_06_Giris_formu_*` (uçtan uca) |
 | H12-01 | Dar sütundaki SVG grafiğin yazıları okunaksız küçülüyordu | Düşük | Düzeltildi | tarayıcıda kontrol |
 | H12-02 | CSV'de stok durumu kod adıyla ("Dusuk") yazılıyordu | Düşük | Düzeltildi | `Csv_bom_ve_noktali_virgul_*` |
 | H11-01 | Menü rozeti: ViewComponent çıktısı `ToString()` ile okunamıyordu | Düşük | Düzeltildi | `Kurum_panelinde_stok_uyarisi_*` |
@@ -77,7 +78,18 @@ Bir bildirimi takipten çıkarınca EF, ilişki düzeltmesi (fix-up) yaparak onu
 dolaşılan liste değiştiği için istisna. Düzeltme: listenin kopyası dolaşılır (`talep.Bildirimler.ToList()`).
 
 **6. Doğrulama.** Regresyon testleri 5 kez art arda çalıştırıldı (eşzamanlılık testi kararlı mı?): 5/5 yeşil.
-Tüm test takımı: 316/316. Ayrıca mükerrer kayıt içeren eski bir veritabanına migration uygulandı: en eski talep açık kaldı, diğeri silinmeden iptal edildi (`H13_04_Migration_*`).
+Tüm test takımı: 317/317. Ayrıca mükerrer kayıt içeren eski bir veritabanına migration uygulandı: en eski talep açık kaldı, diğeri silinmeden iptal edildi (`H13_04_Migration_*`).
+
+## H13-06: birim testi geçti, tarayıcı engelledi
+
+- **Nasıl bulundu:** H13-03 düzeltilip birim testleri yeşile döndükten sonra rapor için tarayıcıda denendi:
+  "ilker@…" ile kayıt, "İlker@…" ile giriş → sayfa "Geçerli bir e-posta girin." dedi, istek sunucuya **hiç gitmedi**.
+- **Kök neden:** giriş modelindeki `[EmailAddress]` özniteliği sayfaya `type="email"` ve `data-val-email` (jQuery doğrulaması) ekliyor;
+  ikisi de e-postanın yerel kısmında yalnızca ASCII kabul ediyor. Servis katmanı doğruydu, hata arayüz katmanındaydı.
+- **Düzeltme:** girişte biçim kontrolü kaldırıldı (adres zaten veritabanında aranıyor); tüm e-posta alanlarına
+  `autocapitalize="none"` eklendi, böylece telefon ilk harfi büyütmüyor.
+- **Ders:** birim testi yalnızca test ettiği katmanı kanıtlar. `H13_06_*` uçtan uca testi sayfanın HTML'ini ve gerçek giriş isteğini kontrol ediyor;
+  düzeltme geri alınınca kırmızıya döndüğü doğrulandı.
 
 ## H13-01: Türkiye saati
 

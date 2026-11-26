@@ -1,17 +1,17 @@
-# Test Sonuç Raporu (Hafta 13, v0.6.0)
+# Test Sonuç Raporu (Hafta 13, v0.6.1)
 
 | | |
 |---|---|
 | Tarih | 26.11.2026 |
 | Komut | `dotnet test` |
-| Sonuç | **316 test, 316 geçti, 0 başarısız, 0 atlandı** (~13 sn) |
+| Sonuç | **317 test, 317 geçti, 0 başarısız, 0 atlandı** (~13 sn) |
 | Araçlar | xUnit 2.9, `WebApplicationFactory` (uçtan uca), bellek içi SQLite (gerçek migration'larla), coverlet (kapsam) |
 
 ## 1. Test piramidi
 
 ```
-            ▲   Uçtan uca (HTTP)        40   %13   gerçek uygulama + gerçek HTTP isteği + çerez + CSRF
-           ▲▲▲  Entegrasyon (veritabanı) 147  %47   servis + depo + gerçek SQLite (migration, kısıtlar, transaction)
+            ▲   Uçtan uca (HTTP)        41   %13   gerçek uygulama + gerçek HTTP isteği + çerez + CSRF
+           ▲▲▲  Entegrasyon (veritabanı) 147  %46   servis + depo + gerçek SQLite (migration, kısıtlar, transaction)
          ▲▲▲▲▲  Birim                   129  %41   saf fonksiyonlar, sahte nesneler (HTTP, LLM, zaman)
 ```
 
@@ -42,8 +42,8 @@ iş kurallarının bir kısmını veritabanı kısıtlarıyla **birlikte** sına
 | StokModuluTestleri | | 30 | | 30 |
 | DisBildirimGondericiTestleri | | 8 | | 8 |
 | AnahtarVeTercihTestleri | | 3 | | 3 |
-| YetkilendirmeTestleri | | | 40 | 40 |
-| **Toplam** | **129** | **147** | **40** | **316** |
+| YetkilendirmeTestleri | | | 41 | 41 |
+| **Toplam** | **129** | **147** | **41** | **317** |
 
 ## 2. Kritik akışlar → testler
 
@@ -108,6 +108,7 @@ Hafta 12 sonunda: satır %91,7, dal %73,5. Bu hafta eklenen testler en çok Web 
 
 - **Kapsam, doğruluğu değil çalıştırılmayı ölçer.** Bir satır testte çalışıp hiçbir şeyi kontrol etmeyebilir.
   Bu haftaki H13-01…04 hatalarının **hepsi zaten "kapsanan" satırlardaydı**; onları kapsam değil, sınır değeri düşünmek buldu.
+  H13-06 ise birim testleri yeşilken yalnızca tarayıcıda görüldü: kapsam yüksek olsa da katmanlar arası test gerekir.
 - **Son %10'un maliyeti yüksek, faydası düşük:** basit eşlemeler (enum → metin), çerçevenin ürettiği kod, dış servis çağrıları.
 - Bu yüzden hedef "kritik akışların ve iş kurallarının her iki yanının test edilmesi"; kapsam yalnızca **test edilmemiş yeri bulmak** için kullanıldı.
 
@@ -123,4 +124,4 @@ Her hafta tüm takım çalıştırılır; önceki haftaların testleri değişti
 | 10 (v0.3.0) | 228 |
 | 11 (v0.4.0) | 262 |
 | 12 (v0.5.0) | 295 |
-| 13 (v0.6.0) | **316** |
+| 13 (v0.6.0 → v0.6.1) | 316 → **317** |

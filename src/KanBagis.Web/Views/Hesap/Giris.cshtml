@@ -13,7 +13,7 @@
 
             <div class="mb-3">
                 <label asp-for="Eposta" class="form-label"></label>
-                <input asp-for="Eposta" class="form-control" autocomplete="username" autofocus />
+                <input asp-for="Eposta" class="form-control" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" autofocus />
                 <span asp-validation-for="Eposta" class="text-danger"></span>
             </div>
             <div class="mb-3">

@@ -7,8 +7,10 @@ namespace KanBagis.Web.Models;
 
 public class GirisViewModel
 {
+    // Girişte biçim kontrolü YOK (H13-06): [EmailAddress] sayfaya yalnızca ASCII kabul eden istemci doğrulaması
+    // ekliyordu; telefon klavyesinin büyüttüğü "İlker@…" tarayıcıda reddediliyor, istek sunucuya hiç ulaşmıyordu.
+    // Girişte biçimin önemi yok: adres normalleştirilip veritabanında aranır, yoksa "E-posta veya parola hatalı".
     [Required(ErrorMessage = "E-posta zorunludur.")]
-    [EmailAddress(ErrorMessage = "Geçerli bir e-posta girin.")]
     [Display(Name = "E-posta")]
     public string Eposta { get; set; } = string.Empty;
 

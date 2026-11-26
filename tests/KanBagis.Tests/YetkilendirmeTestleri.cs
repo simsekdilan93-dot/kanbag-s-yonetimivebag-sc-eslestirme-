@@ -624,6 +624,28 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
     }
 
     [Fact]
+    public async Task H13_06_Giris_formu_Turkce_I_ile_yazilan_epostayi_engellemez()
+    {
+        // İstemci tarafı: girişte yalnızca-ASCII e-posta doğrulaması olmamalı; telefon ilk harfi büyütmemeli.
+        var html = await YeniIstemci().GetStringAsync("/Hesap/Giris");
+        var girdi = Regex.Match(html, "<input[^>]*name=\"Eposta\"[^>]*>").Value;
+        Assert.DoesNotContain("data-val-email", girdi);
+        Assert.DoesNotContain("type=\"email\"", girdi);
+        Assert.Contains("autocapitalize=\"none\"", girdi);
+
+        // Sunucu tarafı: küçük harfle kayıtlı hesaba "İ" ile giriş.
+        using (var scope = _uygulama.Services.CreateScope())
+        {
+            var kayit = await scope.ServiceProvider.GetRequiredService<IKimlikService>().KurumKaydetAsync(
+                new KurumKayitIstegi("ilkerweb@ornek.com", Parola, "İlker Test Hastanesi", "Bingöl", "04260000000"));
+            Assert.True(kayit.Basarili, kayit.Hata);
+        }
+        var yanit = await GirisFormuGonderAsync(YeniIstemci(), "İlkerweb@ornek.com", Parola);
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Equal("/KurumPanel", yanit.Headers.Location!.ToString());
+    }
+
+    [Fact]
     public async Task CSRF_belirteci_olmayan_giris_istegi_reddedilir()
     {
         var yanit = await YeniIstemci().PostAsync("/Hesap/Giris", new FormUrlEncodedContent(

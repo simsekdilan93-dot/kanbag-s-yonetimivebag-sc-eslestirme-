@@ -10,6 +10,13 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.6.1] — 2026-11-27 · Yama
+
+### Düzeltildi
+- **H13-06:** Giriş formunun istemci doğrulaması (yalnızca ASCII) "İlker@…" gibi Türkçe "İ" içeren e-postayı sunucuya hiç göndermiyordu (H13-03'ün arayüz tarafı). Girişte biçim kontrolü kaldırıldı; e-posta alanlarında telefonun ilk harfi büyütmesi kapatıldı. Uçtan uca regresyon testi eklendi (toplam 317).
+
+---
+
 ## [0.6.0] — 2026-11-26 · Test ve hata ayıklama
 
 ### Düzeltildi
