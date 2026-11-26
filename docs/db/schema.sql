@@ -961,3 +961,22 @@ COMMIT;
 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
 VALUES ('20261126192338_StokTakipVeUyari', '10.0.13');
 
+BEGIN TRANSACTION;
+DROP INDEX "IX_KanTalepleri_HastaneId_KanGrubuId_Durum";
+
+UPDATE KanTalepleri
+SET Durum = 'Iptal',
+    KapanisTarihi = strftime('%Y-%m-%d %H:%M:%S', 'now'),
+    Aciklama = substr(COALESCE(Aciklama || ' ', '') || '[Mükerrer açık talep: otomatik iptal]', 1, 300)
+WHERE Durum = 'Acik'
+  AND EXISTS (SELECT 1 FROM KanTalepleri d
+              WHERE d.Durum = 'Acik' AND d.HastaneId = KanTalepleri.HastaneId
+                AND d.KanGrubuId = KanTalepleri.KanGrubuId AND d.Id < KanTalepleri.Id);
+
+CREATE UNIQUE INDEX "UX_KanTalebi_HastaneBasinaTekAcikTalep" ON "KanTalepleri" ("HastaneId", "KanGrubuId") WHERE Durum = 'Acik';
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261126204329_TekAcikTalepKurali', '10.0.13');
+
+COMMIT;
+

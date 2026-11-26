@@ -193,6 +193,100 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         Assert.Contains("Metrik;Değer", await yanit.Content.ReadAsStringAsync());
     }
 
+    // ---------------- Hafta 13: hata yolları (mutlu yol dışı) ----------------
+
+    [Fact]
+    public async Task Stok_hatali_hareket_formu_hata_mesajiyla_yeniden_gosterir_stok_degismez()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var stokOnce = Stok(3);
+
+        var yanit = await kurum.PostAsync("/Stok/Hareket", Form(await TokenAlAsync(kurum, "/Stok"),
+            ("KanGrubuId", "3"), ("Neden", "Imha"), ("Miktar", "1"), ("Aciklama", "")));
+
+        Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);   // yönlendirme yok: form hatayla yeniden
+        Assert.Contains("açıklama zorunlu", await yanit.Content.ReadAsStringAsync());
+        Assert.Equal(stokOnce, Stok(3));
+    }
+
+    [Fact]
+    public async Task Stok_kritik_cikis_once_onay_ister_onayla_kaydedilir_ve_uyari_acilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var (stok, kritik) = StokVeKritik(5);                 // AB Rh+ (8 / kritik 3)
+        var miktar = (stok - kritik).ToString();               // tam kritik eşiğe indirir
+
+        var onaysiz = await kurum.PostAsync("/Stok/Hareket", Form(await TokenAlAsync(kurum, "/Stok"),
+            ("KanGrubuId", "5"), ("Neden", "Transfuzyon"), ("Miktar", miktar)));
+        Assert.Equal(HttpStatusCode.OK, onaysiz.StatusCode);
+        Assert.Contains("onaylıyorum", await onaysiz.Content.ReadAsStringAsync());
+        Assert.Equal(stok, Stok(5));
+
+        var onayli = await kurum.PostAsync("/Stok/Hareket", Form(await TokenAlAsync(kurum, "/Stok"),
+            ("KanGrubuId", "5"), ("Neden", "Transfuzyon"), ("Miktar", miktar), ("KritikOnayi", "true")));
+        Assert.Equal(HttpStatusCode.Redirect, onayli.StatusCode);
+        Assert.Equal(kritik, Stok(5));
+        using var scope = _uygulama.Services.CreateScope();
+        var uyari = scope.ServiceProvider.GetRequiredService<KanBagis.DataAccess.KanBagisDbContext>()
+            .StokUyarilari.Single(u => u.KanGrubuId == 5 && u.KapanisTarihi == null);
+        Assert.Equal(StokDurumu.Kritik, uyari.Seviye);
+    }
+
+    [Fact]
+    public async Task Gecersiz_esik_reddedilir_mesaj_gosterilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var yanit = await kurum.PostAsync("/Stok/Esik", Form(await TokenAlAsync(kurum, "/Stok"),
+            ("kanGrubuId", "2"), ("kritikEsik", "9"), ("uyariEsigi", "4")));
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Contains("Uyarı eşiği kritik eşikten büyük olmalı", await kurum.GetStringAsync("/Stok"));
+    }
+
+    [Theory]
+    [InlineData("/KurumTalep/Detay/999999")]
+    [InlineData("/Tahmin/Kayit/999999")]
+    public async Task Olmayan_kayit_404_doner(string adres)
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        Assert.Equal(HttpStatusCode.NotFound, (await kurum.GetAsync(adres)).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("0")]     // alt sınırın altı
+    [InlineData("11")]    // üst sınırın üstü (en fazla 10)
+    public async Task Talep_formu_unite_sinir_disinda_reddedilir(string unite)
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync(il: "Hakkari"));
+        var yanit = await kurum.PostAsync("/KurumTalep/Yeni", Form(await TokenAlAsync(kurum, "/KurumTalep/Yeni"),
+            ("KanGrubuId", "4"), ("UniteSayisi", unite), ("Aciliyet", "Normal")));
+
+        Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
+        using var scope = _uygulama.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<KanBagis.DataAccess.KanBagisDbContext>();
+        Assert.DoesNotContain(db.KanTalepleri.Include(t => t.Hastane), t => t.Hastane.Sehir == "Hakkari");
+    }
+
+    [Fact]
+    public async Task Hareket_ve_uyari_listeleri_suzgecle_acilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        Assert.Equal(HttpStatusCode.OK, (await kurum.GetAsync("/Stok/Hareketler?kanGrubuId=7&tur=Giris&yalnizcaBenim=true")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await kurum.GetAsync("/Stok/Uyarilar")).StatusCode);
+    }
+
+    private int Stok(int kanGrubuId) => StokVeKritik(kanGrubuId).Stok;
+
+    private (int Stok, int Kritik) StokVeKritik(int kanGrubuId)
+    {
+        using var scope = _uygulama.Services.CreateScope();
+        var s = scope.ServiceProvider.GetRequiredService<KanBagis.DataAccess.KanBagisDbContext>().KanStoklari.Single(k => k.KanGrubuId == kanGrubuId);
+        return (s.UniteSayisi, s.KritikEsik);
+    }
+
+    private static FormUrlEncodedContent Form(string token, params (string Ad, string Deger)[] alanlar) =>
+        new(alanlar.Select(a => new KeyValuePair<string, string>(a.Ad, a.Deger))
+                   .Append(new("__RequestVerificationToken", token)));
+
     // ---------------- Stok Takip ve Uyarı Modülü (Hafta 11) ----------------
 
     [Fact]
@@ -365,6 +459,16 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         var sonPanel = await bagisci.GetStringAsync("/BagisciPanel");
         Assert.Contains("Şu an bağış yapamazsınız", sonPanel);
         Assert.Contains("1 bağış", sonPanel);
+
+        // 6) Hafta 11 entegrasyonu: bağış stok hareket geçmişinde "Bağış" nedenli giriş olarak görünür.
+        var hareketler = await kurum.GetStringAsync("/Stok/Hareketler?kanGrubuId=1&yalnizcaBenim=true");
+        Assert.Contains("Bağış", hareketler);
+        Assert.Contains("için bağış", hareketler);   // "Talep #N için bağış"
+
+        // 7) Hafta 12 entegrasyonu: istatistik panosu (yalnızca bu hastane, son 7 gün) talebi ve bağışı sayar.
+        var pano = await kurum.GetStringAsync("/Istatistik?gun=7&hastanem=true");
+        Assert.Contains("1 bağış · talebe bağlı 1", pano);
+        Assert.Contains("1 / 1 sonuçlanan talep", pano);
     }
 
     [Fact]

@@ -68,8 +68,12 @@ Bağışçı kaydında TC kimlik numarası algoritmayla kontrol edilir. Denemek 
 Testleri çalıştırmak için:
 
 ```bash
-dotnet test
+dotnet test                                   # tüm testler (316)
+dotnet test --filter "Tur=Regresyon"          # yalnızca düzeltilen hataların regresyon testleri
+dotnet test --settings tests/kapsam.runsettings --collect:"XPlat Code Coverage"   # kapsam ölçümü
 ```
+
+Test sonuç raporu: [docs/test/Test-Raporu.md](docs/test/Test-Raporu.md) · Hata kayıtları: [docs/test/Hata-Kayitlari.md](docs/test/Hata-Kayitlari.md)
 
 ## Haftalık ilerleme
 
@@ -83,3 +87,4 @@ dotnet test
 - [x] **Hafta 10:** Yapay zekâ bileşeni: geçmiş talep verisinden istatistiksel tahmin + Claude ile talep/stok tahmini, istem tasarımı, çıktı doğrulama (hatalı/boş çıktıda istatistiğe dönüş), AI kullanım günlüğü, şeffaflık notu (`v0.3.0`, [docs/Yapay-Zeka-Bileseni.md](docs/Yapay-Zeka-Bileseni.md))
 - [x] **Hafta 11:** Stok Takip ve Uyarı Modülü: kan grubu başına kritik/düşük eşik, giriş/çıkış kaydı (atomik, silinemez), kritik eşik uyarısı (aç/güncelle/kapat), bağış kaydıyla entegrasyon (`v0.4.0`, [docs/moduller/Stok-Takip-ve-Uyari-Modulu.md](docs/moduller/Stok-Takip-ve-Uyari-Modulu.md))
 - [x] **Hafta 12:** İstatistik Panosu ve Bildirimler: bağış/talep istatistikleri (toplulaştırma sorguları), SVG grafikler, bildirim özeti ve özet metni, CSV dışa aktarma (`v0.5.0`, [docs/moduller/Istatistik-Panosu.md](docs/moduller/Istatistik-Panosu.md))
+- [x] **Hafta 13:** Test ve hata ayıklama: sınır ve eşzamanlılık testleri, 5 hatanın ayıklanıp düzeltilmesi (Türkiye saati, 29 Şubat, Türkçe "İ", yarış durumu), test piramidi ve kapsam raporu (`v0.6.0`, [docs/test/Test-Raporu.md](docs/test/Test-Raporu.md), [docs/test/Hata-Kayitlari.md](docs/test/Hata-Kayitlari.md))

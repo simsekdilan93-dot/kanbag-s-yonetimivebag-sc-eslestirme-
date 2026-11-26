@@ -23,7 +23,7 @@ public sealed class BagisUygunlukKurali(TimeProvider zaman)
 
     public UygunlukSonucu Degerlendir(Bagisci bagisci, DateTime? sonBagisTarihi)
     {
-        var bugun = DateOnly.FromDateTime(zaman.GetUtcNow().UtcDateTime);
+        var bugun = TurkiyeZamani.Bugun(zaman);   // H13-01: UTC değil, Türkiye takvim günü
         var nedenler = new List<string>();
         DateOnly? sonrakiTarih = null;
 
@@ -31,7 +31,7 @@ public sealed class BagisUygunlukKurali(TimeProvider zaman)
         if (yas < MinimumYas)
         {
             nedenler.Add($"Bağış için en az {MinimumYas} yaşında olmalısınız.");
-            sonrakiTarih = bagisci.DogumTarihi.AddYears(MinimumYas);
+            sonrakiTarih = YasDolduguGun(bagisci.DogumTarihi, MinimumYas);
         }
         else if (yas > MaksimumYas)
         {
@@ -44,7 +44,7 @@ public sealed class BagisUygunlukKurali(TimeProvider zaman)
         if (sonBagisTarihi is { } son)
         {
             var aralik = BagisAraligiGun(bagisci.Cinsiyet);
-            var uygunTarih = DateOnly.FromDateTime(son).AddDays(aralik);
+            var uygunTarih = TurkiyeZamani.Tarih(son).AddDays(aralik);
             if (uygunTarih > bugun)
             {
                 nedenler.Add($"Son bağışınızın üzerinden en az {aralik} gün geçmelidir.");
@@ -55,6 +55,17 @@ public sealed class BagisUygunlukKurali(TimeProvider zaman)
         // Yaş üst sınırı ya da kilo gibi zamanla kendiliğinden düzelmeyen bir neden varsa tarih verilmez.
         var kaliciEngel = yas > MaksimumYas || bagisci.Kilo < MinimumKilo;
         return new UygunlukSonucu(nedenler.Count == 0, nedenler, kaliciEngel ? null : sonrakiTarih);
+    }
+
+    /// <summary>
+    /// Kişinin belirtilen yaşı doldurduğu İLK gün. Yaş hesabıyla (YasHesapla) tutarlı olmalı:
+    /// 29 Şubat doğumlu biri artık olmayan yıllarda yaşını 1 Mart'ta doldurur. DateOnly.AddYears ise
+    /// 28 Şubat'a yuvarladığı için ekranda bir gün erken tarih gösteriliyordu (H13-02).
+    /// </summary>
+    public static DateOnly YasDolduguGun(DateOnly dogum, int yas)
+    {
+        var gun = dogum.AddYears(yas);
+        return BagisciDogrulama.YasHesapla(dogum, gun) < yas ? gun.AddDays(1) : gun;
     }
 
     public static int BagisAraligiGun(Cinsiyet cinsiyet) =>

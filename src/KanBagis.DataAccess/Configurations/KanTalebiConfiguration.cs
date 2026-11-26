@@ -22,8 +22,14 @@ public class KanTalebiConfiguration : IEntityTypeConfiguration<KanTalebi>
         builder.HasKey(t => t.Id);
         builder.Property(t => t.Aciklama).HasMaxLength(300);
 
-        // "Bu hastanenin bu kan grubu için açık talebi var mı?" (mükerrer talep kuralı)
-        builder.HasIndex(t => new { t.HastaneId, t.KanGrubuId, t.Durum });
+        // Mükerrer talep kuralı VERİTABANINDA: bir hastanenin bir kan grubu için en fazla BİR açık talebi olur.
+        // Yalnızca serviste "önce kontrol et, sonra ekle" yapılınca aynı anda gelen istekler ikisi de kontrolü geçip
+        // iki açık talep oluşturabiliyordu (H13-04). Filtreli benzersiz indeks bunu kesin olarak engeller;
+        // aynı zamanda "açık talep var mı?" sorgusunun indeksidir.
+        builder.HasIndex(t => new { t.HastaneId, t.KanGrubuId })
+               .IsUnique()
+               .HasFilter("Durum = 'Acik'")
+               .HasDatabaseName("UX_KanTalebi_HastaneBasinaTekAcikTalep");
 
         // "Açık talepleri kan grubuna göre listele" sorgusu için.
         builder.HasIndex(t => new { t.Durum, t.KanGrubuId });

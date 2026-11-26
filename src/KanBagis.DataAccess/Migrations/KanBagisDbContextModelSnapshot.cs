@@ -743,7 +743,10 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.HasIndex("Durum", "KanGrubuId");
 
-                    b.HasIndex("HastaneId", "KanGrubuId", "Durum");
+                    b.HasIndex("HastaneId", "KanGrubuId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_KanTalebi_HastaneBasinaTekAcikTalep")
+                        .HasFilter("Durum = 'Acik'");
 
                     b.ToTable("KanTalepleri", null, t =>
                         {

@@ -95,7 +95,12 @@ public sealed class TalepService(
         foreach (var aday in secilenler)
             talep.Bildirimler.Add(BildirimOlustur(aday, hastane, kanGrubu, talep));
 
-        await talepler.EkleAsync(talep);
+        if (!await talepler.AcikTalepEkleAsync(talep))
+        {
+            // Kontrolden sonra, aynı anda gelen başka bir istek aynı grup için talep açtı (H13-04).
+            var diger = await talepler.AcikTalebiGetirAsync(hastaneId, istek.KanGrubuId);
+            return TalepIslemSonucu.Hatali($"{kanGrubu.Ad} için zaten açık bir talebiniz var (#{diger?.Id}). Önce onu kapatın ya da o talepten daha fazla bağışçıya bildirim gönderin.", diger?.Id);
+        }
 
         // Telefona gönderim arka planda yapılır: talep, SMS/push servislerinin yanıtını beklemeden oluşur.
         foreach (var b in talep.Bildirimler) bildirimKuyrugu.Ekle(b.Id);

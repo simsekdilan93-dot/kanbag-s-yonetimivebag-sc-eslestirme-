@@ -12,6 +12,12 @@ public interface IKanTalebiRepository : IRepository<KanTalebi>
     Task<List<TalepOzeti>> HastaneninTalepleriAsync(int hastaneId);
     Task<KanTalebi?> AcikTalebiGetirAsync(int hastaneId, int kanGrubuId);
 
+    /// <summary>
+    /// Yeni açık talebi (bildirimleriyle birlikte) ekler. Aynı hastane ve kan grubu için başka bir açık talep
+    /// bu arada eklenmişse (eşzamanlı istek) veritabanı reddeder; o zaman false döner ve hiçbir şey kaydedilmez.
+    /// </summary>
+    Task<bool> AcikTalepEkleAsync(KanTalebi talep);
+
     /// <summary>Talep + hastane + kan grubu + bildirimler (bağışçılarıyla) + talep için alınan bağışlar. Salt okunur.</summary>
     Task<KanTalebi?> DetayGetirAsync(int talepId);
 }
@@ -35,6 +41,26 @@ public class KanTalebiRepository(KanBagisDbContext context) : EfRepository<KanTa
 
         foreach (var s in satirlar) s.Talep.KanGrubu = s.KanGrubu;
         return satirlar.Select(s => new TalepOzeti(s.Talep, s.BildirimSayisi, s.KabulSayisi)).ToList();
+    }
+
+    public async Task<bool> AcikTalepEkleAsync(KanTalebi talep)
+    {
+        Tablo.Add(talep);
+        try
+        {
+            await Context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException e) when (e.InnerException is Microsoft.Data.Sqlite.SqliteException { SqliteErrorCode: 19 } s
+                                          && s.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
+        {
+            // Başarısız ekleme takipte kalırsa aynı istekteki sonraki SaveChanges onu tekrar denerdi.
+            // ToList(): bildirimi takipten çıkarmak EF'in onu talep.Bildirimler listesinden de silmesine yol açar;
+            // listenin kendisi dolaşılırsa "Collection was modified" hatası alınır (H13-05).
+            foreach (var b in talep.Bildirimler.ToList()) Context.Entry(b).State = EntityState.Detached;
+            Context.Entry(talep).State = EntityState.Detached;
+            return false;
+        }
     }
 
     public Task<KanTalebi?> AcikTalebiGetirAsync(int hastaneId, int kanGrubuId) =>

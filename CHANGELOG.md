@@ -10,6 +10,22 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.6.0] — 2026-11-26 · Test ve hata ayıklama
+
+### Düzeltildi
+- **H13-01:** "Bugün" UTC'ye göre hesaplanıyordu; Türkiye saatiyle 00:00–03:00 arası yaş ve 90/120 gün kuralı bir gün kayıyordu. Takvim günü soruları artık Türkiye saatine göre (`TurkiyeZamani`).
+- **H13-02:** 29 Şubat doğumlulara gösterilen "sonraki uygun tarih" bir gün erkendi.
+- **H13-03:** Türkçe "İ" ile yazılan e-posta (ör. "İlker@…") eşleşmiyordu; aynı adresle ikinci hesap açılabiliyordu.
+- **H13-04:** Aynı anda gelen isteklerle aynı kan grubu için birden çok açık talep açılabiliyordu. Veritabanına filtreli benzersiz indeks eklendi; mükerrer kayıtlar migration'da iptal ediliyor.
+- **H13-05:** Başarısız talep eklemede "Collection was modified" istisnası.
+
+### Eklendi
+- `HataRegresyonTestleri` (her hata için önce kırmızı, sonra yeşil test), hata yolları için web testleri, uçtan uca akış stok hareketi ve istatistik panosuna kadar uzatıldı. Toplam 316 test.
+- `docs/test/Test-Raporu.md` (piramit, kapsam, sınır senaryoları), `docs/test/Hata-Kayitlari.md` (düzeltilen ve bilinen hatalar).
+- Kapsam ölçümü: `tests/kapsam.runsettings`, `tests/araclar/kapsam_ozet.py`, `tests/araclar/test_piramidi.py`.
+
+---
+
 ## [0.5.0] — 2026-11-26 · İstatistik Panosu ve Bildirim Özeti
 
 ### Eklendi

@@ -160,9 +160,13 @@ public sealed class KimlikService(
         return null;
     }
 
-    private static string EpostaNormallestir(string eposta) => eposta.Trim().ToLowerInvariant();
+    /// <summary>
+    /// E-posta karşılaştırması büyük/küçük harf duyarsızdır. Türkçe klavyede yazılan "İ" (U+0130) ToLowerInvariant ile
+    /// "i̇" (i + birleşen nokta) olur ve "i" ile eşleşmez; bu yüzden önce "I"ya çevrilir (H13-03).
+    /// </summary>
+    public static string EpostaNormallestir(string eposta) => eposta.Trim().Replace('İ', 'I').ToLowerInvariant();
 
     private DateTime Simdi() => zaman.GetUtcNow().UtcDateTime;
 
-    private DateOnly Bugun() => DateOnly.FromDateTime(Simdi());
+    private DateOnly Bugun() => TurkiyeZamani.Bugun(zaman);
 }
