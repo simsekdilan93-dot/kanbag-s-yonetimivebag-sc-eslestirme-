@@ -10,7 +10,11 @@ public class KanStokConfiguration : IEntityTypeConfiguration<KanStok>
     public void Configure(EntityTypeBuilder<KanStok> builder)
     {
         builder.ToTable("KanStoklari", t =>
-            t.HasCheckConstraint("CK_KanStok_UniteSayisi_Negatif_Olamaz", "UniteSayisi >= 0"));
+        {
+            t.HasCheckConstraint("CK_KanStok_UniteSayisi_Negatif_Olamaz", "UniteSayisi >= 0");
+            t.HasCheckConstraint("CK_KanStok_Esikler", "KritikEsik >= 0 AND UyariEsigi >= KritikEsik");
+        });
+        builder.Ignore(s => s.Durum);
 
         builder.HasKey(s => s.Id);
 

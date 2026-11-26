@@ -36,13 +36,21 @@ public class BagisRepository(KanBagisDbContext context) : EfRepository<Bagis>(co
         await Context.SaveChangesAsync();
 
         // Stoğa bağışçının kendi kan grubu eklenir (talep edilen grup değil: bağışlanan kan bağışçınınkidir).
-        var guncellenen = await Context.KanStoklari
-            .Where(s => s.KanGrubuId == kanGrubuId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(x => x.UniteSayisi, x => x.UniteSayisi + bagis.UniteSayisi)
-                .SetProperty(x => x.GuncellemeTarihi, bagis.BagisTarihi));
+        // Hafta 11: stok doğrudan değil, Stok Takip Modülü üzerinden bir GİRİŞ hareketiyle artar;
+        // böylece bağış da hareket geçmişinde görünür ve stok eşiğin üstüne çıkarsa uyarı kapanır.
+        var stokSonucu = await new KanStokRepository(Context).HareketUygulaAsync(new StokHareketi
+        {
+            KanGrubuId = kanGrubuId,
+            Tur = HareketTuru.Giris,
+            Neden = HareketNedeni.Bagis,
+            Miktar = bagis.UniteSayisi,
+            Tarih = bagis.BagisTarihi,
+            HastaneId = bagis.HastaneId,
+            BagisId = bagis.Id,
+            Aciklama = bagis.KanTalebiId is { } t ? $"Talep #{t} için bağış" : "Gönüllü bağış",
+        });
 
-        if (guncellenen == 0)
+        if (stokSonucu.Durum != StokIslemDurumu.Basarili)
             throw new InvalidOperationException($"Kan grubu için stok kaydı yok: {kanGrubuId}");
 
         if (kapatilacakTalepId is { } talepId)

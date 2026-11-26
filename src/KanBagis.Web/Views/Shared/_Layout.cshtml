@@ -39,6 +39,12 @@
                                 <a class="nav-link text-dark" asp-controller="KurumPanel" asp-action="Index">Kurum paneli</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Stok" asp-action="Index">
+                                    Stok takibi
+                                    @await Component.InvokeAsync("StokUyariRozeti")
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Tahmin" asp-action="Index">Stok tahmini</a>
                             </li>
                         }

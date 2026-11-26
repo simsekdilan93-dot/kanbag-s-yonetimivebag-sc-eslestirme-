@@ -26,15 +26,18 @@ public static class OrnekVeri
 
     public static readonly KanStok[] KanStoklari =
     [
-        new() { Id = 1, KanGrubuId = 1, UniteSayisi = 24, GuncellemeTarihi = StokTarihi },
-        new() { Id = 2, KanGrubuId = 2, UniteSayisi = 6,  GuncellemeTarihi = StokTarihi },
-        new() { Id = 3, KanGrubuId = 3, UniteSayisi = 15, GuncellemeTarihi = StokTarihi },
-        new() { Id = 4, KanGrubuId = 4, UniteSayisi = 3,  GuncellemeTarihi = StokTarihi },
-        new() { Id = 5, KanGrubuId = 5, UniteSayisi = 8,  GuncellemeTarihi = StokTarihi },
-        new() { Id = 6, KanGrubuId = 6, UniteSayisi = 1,  GuncellemeTarihi = StokTarihi },
-        new() { Id = 7, KanGrubuId = 7, UniteSayisi = 30, GuncellemeTarihi = StokTarihi },
-        new() { Id = 8, KanGrubuId = 8, UniteSayisi = 2,  GuncellemeTarihi = StokTarihi },
+        new() { Id = 1, KanGrubuId = 1, UniteSayisi = 24, KritikEsik = 8, UyariEsigi = 15, GuncellemeTarihi = StokTarihi },
+        new() { Id = 2, KanGrubuId = 2, UniteSayisi = 6,  KritikEsik = 3, UyariEsigi = 6, GuncellemeTarihi = StokTarihi },
+        new() { Id = 3, KanGrubuId = 3, UniteSayisi = 15, KritikEsik = 6, UyariEsigi = 12, GuncellemeTarihi = StokTarihi },
+        new() { Id = 4, KanGrubuId = 4, UniteSayisi = 3,  KritikEsik = 2, UyariEsigi = 4, GuncellemeTarihi = StokTarihi },
+        new() { Id = 5, KanGrubuId = 5, UniteSayisi = 8,  KritikEsik = 3, UyariEsigi = 6, GuncellemeTarihi = StokTarihi },
+        new() { Id = 6, KanGrubuId = 6, UniteSayisi = 1,  KritikEsik = 1, UyariEsigi = 2, GuncellemeTarihi = StokTarihi },
+        new() { Id = 7, KanGrubuId = 7, UniteSayisi = 30, KritikEsik = 10, UyariEsigi = 20, GuncellemeTarihi = StokTarihi },
+        new() { Id = 8, KanGrubuId = 8, UniteSayisi = 2,  KritikEsik = 4, UyariEsigi = 8, GuncellemeTarihi = StokTarihi },
     ];
+
+    // Eşikler kan grubunun kullanım sıklığıyla orantılı: 0 Rh+ ve A Rh+ en çok kullanılan gruplar, eşikleri yüksek;
+    // AB Rh- en nadir grup, eşiği düşük. (Tahmin sayfasındaki haftalık ortalamalarla aynı sıralama.)
 
     public static readonly Hastane[] Hastaneler =
     [

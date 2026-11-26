@@ -10,6 +10,22 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.4.0] — 2026-11-26 · Stok Takip ve Uyarı Modülü
+
+### Eklendi
+- **Stok modeli:** her kan grubu için kritik ve düşük eşik (`KritikEsik`, `UyariEsigi`); durum Normal / Düşük / Kritik.
+- **Giriş/çıkış kaydı:** `StokHareketleri` tablosu (tür, neden, miktar, önceki/sonraki stok, yapan kurum/kullanıcı). Atomik güncelleme ile stok asla eksiye düşmez; kayıtlar silinmez.
+- **Kritik eşik uyarısı:** `StokUyarilari` tablosu; eşik altına inince açılır, seviye değişince güncellenir, stok normale dönünce kapanır. Kan grubu başına tek açık uyarı.
+- İş kuralları: miktar 1–50, elle bağış girişi yok, imha/sayımda açıklama zorunlu, kritik seviyeye indiren çıkışta onay, eşik doğrulaması, kimlik oturumdan.
+- Stok takibi, hareket geçmişi ve uyarı geçmişi sayfaları; menüde açık uyarı sayısı; kurum panelinde uyarı şeridi.
+- `docs/moduller/Stok-Takip-ve-Uyari-Modulu.md`; 34 yeni test (toplam 262).
+
+### Değişti
+- Bağış kaydı stoğu artık "Bağış" nedenli giriş hareketiyle artırıyor (aynı transaction).
+- Kurum panelindeki sabit "5 ünite altı" kuralı yerine kan grubunun eşikleri kullanılıyor.
+
+---
+
 ## [0.3.0] — 2026-11-16 · Yapay zekâ bileşeni: talep ve stok tahmini
 
 ### Eklendi

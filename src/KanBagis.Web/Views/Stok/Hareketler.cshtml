@@ -1,0 +1,62 @@
+@using KanBagis.Business.Stok
+@model List<StokHareketi>
+@{
+    ViewData["Title"] = "Stok hareketleri";
+    int? kanGrubuId = ViewBag.KanGrubuId;
+    HareketTuru? tur = ViewBag.Tur;
+    bool yalnizcaBenim = ViewBag.YalnizcaBenim;
+}
+
+<h1 class="h3 mb-1">Stok hareketleri</h1>
+<p class="text-muted">Giriş/çıkış kayıtları değiştirilemez ve silinemez; hata varsa ters yönde düzeltme hareketi girilir.</p>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-auto">
+        <label class="form-label small" for="kanGrubuId">Kan grubu</label>
+        <select id="kanGrubuId" name="kanGrubuId" class="form-select form-select-sm">
+            <option value="">Tümü</option>
+            @foreach (var (id, ad) in new[] { (1, "A Rh+"), (2, "A Rh-"), (3, "B Rh+"), (4, "B Rh-"), (5, "AB Rh+"), (6, "AB Rh-"), (7, "0 Rh+"), (8, "0 Rh-") })
+            {
+                <option value="@id" selected="@(kanGrubuId == id)">@ad</option>
+            }
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label small" for="tur">Tür</label>
+        <select id="tur" name="tur" class="form-select form-select-sm">
+            <option value="">Tümü</option>
+            <option value="Giris" selected="@(tur == HareketTuru.Giris)">Giriş</option>
+            <option value="Cikis" selected="@(tur == HareketTuru.Cikis)">Çıkış</option>
+        </select>
+    </div>
+    <div class="col-auto form-check ms-2 mb-1">
+        <input class="form-check-input" type="checkbox" id="yalnizcaBenim" name="yalnizcaBenim" value="true" checked="@yalnizcaBenim" />
+        <label class="form-check-label small" for="yalnizcaBenim">Yalnızca hastanemin hareketleri</label>
+    </div>
+    <div class="col-auto"><button class="btn btn-sm btn-outline-secondary">Filtrele</button></div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-sm align-middle">
+        <thead>
+            <tr><th>#</th><th>Tarih</th><th>Kan grubu</th><th>Hareket</th><th class="text-end">Miktar</th><th class="text-end">Stok</th><th>Yapan</th><th>Açıklama</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var h in Model)
+            {
+                <tr>
+                    <td class="text-muted">@h.Id</td>
+                    <td>@h.Tarih.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@h.KanGrubu.Ad</td>
+                    <td>@StokService.NedenAdi(h.Neden)</td>
+                    <td class="text-end fw-semibold @(h.Tur == HareketTuru.Giris ? "text-success" : "text-danger")">@(h.Tur == HareketTuru.Giris ? "+" : "−")@h.Miktar</td>
+                    <td class="text-end">@h.OncekiStok → @h.SonrakiStok</td>
+                    <td class="small">@(h.Hastane?.Ad ?? "—")@(h.Kullanici is null ? "" : $" ({h.Kullanici.Eposta})")</td>
+                    <td class="small">@h.Aciklama</td>
+                </tr>
+            }
+            @if (Model.Count == 0) { <tr><td colspan="8" class="text-muted">Kayıt yok.</td></tr> }
+        </tbody>
+    </table>
+</div>
+<a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Stok takibi</a>

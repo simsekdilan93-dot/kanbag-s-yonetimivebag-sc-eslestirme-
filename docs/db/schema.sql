@@ -823,3 +823,141 @@ VALUES ('20261116205428_TahminKayitlari', '10.0.13');
 
 COMMIT;
 
+BEGIN TRANSACTION;
+ALTER TABLE "KanStoklari" ADD "KritikEsik" INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE "KanStoklari" ADD "UyariEsigi" INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE "StokHareketleri" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_StokHareketleri" PRIMARY KEY AUTOINCREMENT,
+    "Tarih" TEXT NOT NULL,
+    "Tur" TEXT NOT NULL,
+    "Neden" TEXT NOT NULL,
+    "Miktar" INTEGER NOT NULL,
+    "OncekiStok" INTEGER NOT NULL,
+    "SonrakiStok" INTEGER NOT NULL,
+    "Aciklama" TEXT NULL,
+    "KanGrubuId" INTEGER NOT NULL,
+    "HastaneId" INTEGER NULL,
+    "KullaniciId" INTEGER NULL,
+    "BagisId" INTEGER NULL,
+    CONSTRAINT "CK_StokHareketi_Bagis" CHECK ((Neden = 'Bagis' AND BagisId IS NOT NULL) OR (Neden <> 'Bagis' AND BagisId IS NULL)),
+    CONSTRAINT "CK_StokHareketi_Hesap" CHECK ((Tur = 'Giris' AND SonrakiStok = OncekiStok + Miktar) OR (Tur = 'Cikis' AND SonrakiStok = OncekiStok - Miktar)),
+    CONSTRAINT "CK_StokHareketi_Miktar_Pozitif" CHECK (Miktar > 0),
+    CONSTRAINT "CK_StokHareketi_Neden_Tur" CHECK ((Tur = 'Giris' AND Neden IN ('Bagis','TransferGiris','SayimFazlasi')) OR (Tur = 'Cikis' AND Neden IN ('Transfuzyon','TransferCikis','Imha','SayimEksigi'))),
+    CONSTRAINT "CK_StokHareketi_Stok_Negatif_Olamaz" CHECK (OncekiStok >= 0 AND SonrakiStok >= 0),
+    CONSTRAINT "FK_StokHareketleri_Bagislar_BagisId" FOREIGN KEY ("BagisId") REFERENCES "Bagislar" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_StokHareketleri_Hastaneler_HastaneId" FOREIGN KEY ("HastaneId") REFERENCES "Hastaneler" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_StokHareketleri_KanGruplari_KanGrubuId" FOREIGN KEY ("KanGrubuId") REFERENCES "KanGruplari" ("Id") ON DELETE RESTRICT,
+    CONSTRAINT "FK_StokHareketleri_Kullanicilar_KullaniciId" FOREIGN KEY ("KullaniciId") REFERENCES "Kullanicilar" ("Id") ON DELETE RESTRICT
+);
+
+CREATE TABLE "StokUyarilari" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_StokUyarilari" PRIMARY KEY AUTOINCREMENT,
+    "Seviye" TEXT NOT NULL,
+    "StokDegeri" INTEGER NOT NULL,
+    "Esik" INTEGER NOT NULL,
+    "AcilisTarihi" TEXT NOT NULL,
+    "GuncellemeTarihi" TEXT NOT NULL,
+    "KapanisTarihi" TEXT NULL,
+    "KanGrubuId" INTEGER NOT NULL,
+    CONSTRAINT "CK_StokUyarisi_Seviye" CHECK (Seviye IN ('Dusuk','Kritik')),
+    CONSTRAINT "FK_StokUyarilari_KanGruplari_KanGrubuId" FOREIGN KEY ("KanGrubuId") REFERENCES "KanGruplari" ("Id") ON DELETE RESTRICT
+);
+
+UPDATE "KanStoklari" SET "KritikEsik" = 8, "UyariEsigi" = 15
+WHERE "Id" = 1;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 3, "UyariEsigi" = 6
+WHERE "Id" = 2;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 6, "UyariEsigi" = 12
+WHERE "Id" = 3;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 2, "UyariEsigi" = 4
+WHERE "Id" = 4;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 3, "UyariEsigi" = 6
+WHERE "Id" = 5;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 1, "UyariEsigi" = 2
+WHERE "Id" = 6;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 10, "UyariEsigi" = 20
+WHERE "Id" = 7;
+SELECT changes();
+
+
+UPDATE "KanStoklari" SET "KritikEsik" = 4, "UyariEsigi" = 8
+WHERE "Id" = 8;
+SELECT changes();
+
+
+CREATE UNIQUE INDEX "IX_StokHareketleri_BagisId" ON "StokHareketleri" ("BagisId") WHERE BagisId IS NOT NULL;
+
+CREATE INDEX "IX_StokHareketleri_HastaneId" ON "StokHareketleri" ("HastaneId");
+
+CREATE INDEX "IX_StokHareketleri_KanGrubuId_Tarih" ON "StokHareketleri" ("KanGrubuId", "Tarih");
+
+CREATE INDEX "IX_StokHareketleri_KullaniciId" ON "StokHareketleri" ("KullaniciId");
+
+CREATE UNIQUE INDEX "IX_StokUyarilari_KanGrubuId" ON "StokUyarilari" ("KanGrubuId") WHERE KapanisTarihi IS NULL;
+
+INSERT INTO StokUyarilari (KanGrubuId, Seviye, StokDegeri, Esik, AcilisTarihi, GuncellemeTarihi, KapanisTarihi)
+SELECT KanGrubuId,
+       CASE WHEN UniteSayisi <= KritikEsik THEN 'Kritik' ELSE 'Dusuk' END,
+       UniteSayisi,
+       CASE WHEN UniteSayisi <= KritikEsik THEN KritikEsik ELSE UyariEsigi END,
+       GuncellemeTarihi, GuncellemeTarihi, NULL
+FROM KanStoklari
+WHERE UniteSayisi <= UyariEsigi;
+
+CREATE TABLE "ef_temp_KanStoklari" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_KanStoklari" PRIMARY KEY AUTOINCREMENT,
+    "GuncellemeTarihi" TEXT NOT NULL,
+    "KanGrubuId" INTEGER NOT NULL,
+    "KritikEsik" INTEGER NOT NULL,
+    "UniteSayisi" INTEGER NOT NULL,
+    "UyariEsigi" INTEGER NOT NULL,
+    CONSTRAINT "CK_KanStok_Esikler" CHECK (KritikEsik >= 0 AND UyariEsigi >= KritikEsik),
+    CONSTRAINT "CK_KanStok_UniteSayisi_Negatif_Olamaz" CHECK (UniteSayisi >= 0),
+    CONSTRAINT "FK_KanStoklari_KanGruplari_KanGrubuId" FOREIGN KEY ("KanGrubuId") REFERENCES "KanGruplari" ("Id") ON DELETE RESTRICT
+);
+
+INSERT INTO "ef_temp_KanStoklari" ("Id", "GuncellemeTarihi", "KanGrubuId", "KritikEsik", "UniteSayisi", "UyariEsigi")
+SELECT "Id", "GuncellemeTarihi", "KanGrubuId", "KritikEsik", "UniteSayisi", "UyariEsigi"
+FROM "KanStoklari";
+
+COMMIT;
+
+PRAGMA foreign_keys = 0;
+
+BEGIN TRANSACTION;
+DROP TABLE "KanStoklari";
+
+ALTER TABLE "ef_temp_KanStoklari" RENAME TO "KanStoklari";
+
+COMMIT;
+
+PRAGMA foreign_keys = 1;
+
+BEGIN TRANSACTION;
+CREATE UNIQUE INDEX "IX_KanStoklari_KanGrubuId" ON "KanStoklari" ("KanGrubuId");
+
+COMMIT;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261126192338_StokTakipVeUyari', '10.0.13');
+

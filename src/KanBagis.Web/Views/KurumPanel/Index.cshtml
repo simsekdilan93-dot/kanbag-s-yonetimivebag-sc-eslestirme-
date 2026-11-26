@@ -6,6 +6,20 @@
 <h1 class="h3 mb-1">@Model.Hastane.Ad</h1>
 <p class="text-muted mb-4">@Model.Hastane.Sehir · @Model.Hastane.Telefon</p>
 
+@if (Model.StokUyarilari.Count > 0)
+{
+    <div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div>
+            <strong>Stok uyarısı:</strong>
+            @foreach (var u in Model.StokUyarilari)
+            {
+                <span class="badge @Gorunum.StokDurumRozeti(u.Seviye) ms-1">@u.KanGrubu.Ad · @u.StokDegeri ünite</span>
+            }
+        </div>
+        <a asp-controller="Stok" asp-action="Index" class="btn btn-sm btn-outline-danger">Stok takibine git</a>
+    </div>
+}
+
 <div class="row g-4">
     <div class="col-lg-6">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -61,9 +75,15 @@
                 <tbody>
                     @foreach (var g in Model.KanGruplari)
                     {
-                        <tr class="@(g.StokUnite < 5 ? "table-warning" : "")">
+                        <tr class="@(g.StokDurumu == StokDurumu.Kritik ? "table-danger" : g.StokDurumu == StokDurumu.Dusuk ? "table-warning" : "")">
                             <td>@g.KanGrubu.Ad</td>
-                            <td class="text-end">@g.StokUnite</td>
+                            <td class="text-end">
+                                @g.StokUnite
+                                @if (g.StokDurumu != StokDurumu.Normal)
+                                {
+                                    <span class="badge @Gorunum.StokDurumRozeti(g.StokDurumu) ms-1">@KanBagis.Business.Stok.StokService.DurumAdi(g.StokDurumu)</span>
+                                }
+                            </td>
                             <td class="text-end">@g.IldekiUygunBagisciSayisi</td>
                         </tr>
                     }
@@ -71,7 +91,8 @@
             </table>
         </div>
         <p class="small text-muted">
-            Sarı satırlar: stok 5 ünitenin altında.
+            Kırmızı: stok kritik eşikte ya da altında, sarı: düşük eşikte ya da altında
+            (eşikler <a asp-controller="Stok" asp-action="Index">Stok takibi</a> sayfasında ayarlanır).
             "Uygun bağışçı": bu gruba <a asp-controller="KanGrubu" asp-action="Index">kan verebilecek</a> (yalnızca aynı grup değil)
             ve bugün bağış koşullarını (yaş, kilo, son bağış) sağlayan bağışçı sayısı.
             Kişisel bilgiler (KVKK) gösterilmez.

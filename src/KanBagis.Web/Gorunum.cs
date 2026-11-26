@@ -24,6 +24,13 @@ public static class Gorunum
         _ => "text-bg-secondary",
     };
 
+    public static string StokDurumRozeti(StokDurumu durum) => durum switch
+    {
+        StokDurumu.Kritik => "text-bg-danger",
+        StokDurumu.Dusuk => "text-bg-warning",
+        _ => "text-bg-success",
+    };
+
     public static string RiskRozeti(RiskSeviyesi risk) => risk switch
     {
         RiskSeviyesi.Kritik => "text-bg-danger",

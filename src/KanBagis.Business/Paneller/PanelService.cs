@@ -17,9 +17,9 @@ public record BagisciPaneli(BagisciProfili Profil, List<Bildirim> Bildirimler,
 }
 
 /// <summary>Kurum panelinde bir kan grubunun özeti. KVKK gereği bağışçı kimlikleri değil, yalnızca sayıları gösterilir.</summary>
-public record KanGrubuOzeti(KanGrubu KanGrubu, int StokUnite, int IldekiUygunBagisciSayisi);
+public record KanGrubuOzeti(KanGrubu KanGrubu, int StokUnite, int IldekiUygunBagisciSayisi, StokDurumu StokDurumu = StokDurumu.Normal);
 
-public record KurumPaneli(Hastane Hastane, List<TalepOzeti> Talepler, List<KanGrubuOzeti> KanGruplari);
+public record KurumPaneli(Hastane Hastane, List<TalepOzeti> Talepler, List<KanGrubuOzeti> KanGruplari, List<StokUyarisi> StokUyarilari);
 
 public interface IPanelService
 {
@@ -67,10 +67,10 @@ public sealed class PanelService(
         foreach (var stok in await stoklar.KanGrubuylaTumuAsync())
         {
             var uygunlar = await eslestirme.IldekiAdaylariBulAsync(stok.KanGrubuId, hastane.Sehir);
-            ozetler.Add(new KanGrubuOzeti(stok.KanGrubu, stok.UniteSayisi, uygunlar.Count));
+            ozetler.Add(new KanGrubuOzeti(stok.KanGrubu, stok.UniteSayisi, uygunlar.Count, stok.Durum));
         }
 
         var talepListesi = AciliyetKurallari.OncelikSirasina(await talepler.HastaneninTalepleriAsync(hastaneId), o => o.Talep).ToList();
-        return new KurumPaneli(hastane, talepListesi, ozetler);
+        return new KurumPaneli(hastane, talepListesi, ozetler, await stoklar.AcikUyarilarAsync());
     }
 }

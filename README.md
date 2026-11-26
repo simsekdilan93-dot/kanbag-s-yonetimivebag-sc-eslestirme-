@@ -12,6 +12,7 @@ Kan bağışçılarını, hastanelerin kan taleplerini ve kan stoğunu tek bir y
 - ✅ Kan grubu uyumluluğu ve konuma (mesafeye) göre eşleştirme, bildirim gönderme ve yanıt takibi
 - ✅ Bağış kaydı → kan stoğu artışı → talebin kendiliğinden kapanması (uçtan uca)
 - ✅ Gerçek yol mesafesi (OSRM) ve telefona anlık bildirim (ntfy) / SMS (Twilio)
+- ✅ Stok takibi: giriş/çıkış kaydı, kan grubu başına kritik eşik ve otomatik uyarı
 - ✅ Talep ve stok tahmini: istatistiksel tahmin + yapay zekâ (Claude), doğrulanmış çıktı ve AI kullanım günlüğü
 
 ## Teknolojiler
@@ -79,3 +80,4 @@ dotnet test
 - [x] **Hafta 8 (VİZE):** Uçtan uca entegrasyon (bağış kaydı → stok → talep kapanışı), bilinen hataların giderilmesi, entegrasyon testleri, `v0.1.0` sürüm etiketi, demo senaryosu ve sözlü hazırlık
 - [x] **Hafta 9:** Harici API entegrasyonu: OSRM ile yol mesafesi ve yol tarifi, ntfy ile anlık bildirim, Twilio ile SMS, arka planda gönderim kuyruğu, zaman aşımı / yeniden deneme / hız sınırı yönetimi, anahtarların ortam değişkeninde saklanması (`v0.2.0`)
 - [x] **Hafta 10:** Yapay zekâ bileşeni: geçmiş talep verisinden istatistiksel tahmin + Claude ile talep/stok tahmini, istem tasarımı, çıktı doğrulama (hatalı/boş çıktıda istatistiğe dönüş), AI kullanım günlüğü, şeffaflık notu (`v0.3.0`, [docs/Yapay-Zeka-Bileseni.md](docs/Yapay-Zeka-Bileseni.md))
+- [x] **Hafta 11:** Stok Takip ve Uyarı Modülü: kan grubu başına kritik/düşük eşik, giriş/çıkış kaydı (atomik, silinemez), kritik eşik uyarısı (aç/güncelle/kapat), bağış kaydıyla entegrasyon (`v0.4.0`, [docs/moduller/Stok-Takip-ve-Uyari-Modulu.md](docs/moduller/Stok-Takip-ve-Uyari-Modulu.md))

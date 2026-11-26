@@ -606,7 +606,13 @@ namespace KanBagis.DataAccess.Migrations
                     b.Property<int>("KanGrubuId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("KritikEsik")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("UniteSayisi")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("UyariEsigi")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -616,6 +622,8 @@ namespace KanBagis.DataAccess.Migrations
 
                     b.ToTable("KanStoklari", null, t =>
                         {
+                            t.HasCheckConstraint("CK_KanStok_Esikler", "KritikEsik >= 0 AND UyariEsigi >= KritikEsik");
+
                             t.HasCheckConstraint("CK_KanStok_UniteSayisi_Negatif_Olamaz", "UniteSayisi >= 0");
                         });
 
@@ -625,56 +633,72 @@ namespace KanBagis.DataAccess.Migrations
                             Id = 1,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 1,
-                            UniteSayisi = 24
+                            KritikEsik = 8,
+                            UniteSayisi = 24,
+                            UyariEsigi = 15
                         },
                         new
                         {
                             Id = 2,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 2,
-                            UniteSayisi = 6
+                            KritikEsik = 3,
+                            UniteSayisi = 6,
+                            UyariEsigi = 6
                         },
                         new
                         {
                             Id = 3,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 3,
-                            UniteSayisi = 15
+                            KritikEsik = 6,
+                            UniteSayisi = 15,
+                            UyariEsigi = 12
                         },
                         new
                         {
                             Id = 4,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 4,
-                            UniteSayisi = 3
+                            KritikEsik = 2,
+                            UniteSayisi = 3,
+                            UyariEsigi = 4
                         },
                         new
                         {
                             Id = 5,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 5,
-                            UniteSayisi = 8
+                            KritikEsik = 3,
+                            UniteSayisi = 8,
+                            UyariEsigi = 6
                         },
                         new
                         {
                             Id = 6,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 6,
-                            UniteSayisi = 1
+                            KritikEsik = 1,
+                            UniteSayisi = 1,
+                            UyariEsigi = 2
                         },
                         new
                         {
                             Id = 7,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 7,
-                            UniteSayisi = 30
+                            KritikEsik = 10,
+                            UniteSayisi = 30,
+                            UyariEsigi = 20
                         },
                         new
                         {
                             Id = 8,
                             GuncellemeTarihi = new DateTime(2026, 10, 1, 9, 0, 0, 0, DateTimeKind.Utc),
                             KanGrubuId = 8,
-                            UniteSayisi = 2
+                            KritikEsik = 4,
+                            UniteSayisi = 2,
+                            UyariEsigi = 8
                         });
                 });
 
@@ -823,6 +847,117 @@ namespace KanBagis.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("KanBagis.Entities.StokHareketi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Aciklama")
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("BagisId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("HastaneId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("KanGrubuId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("KullaniciId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Miktar")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Neden")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OncekiStok")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SonrakiStok")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Tarih")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Tur")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BagisId")
+                        .IsUnique()
+                        .HasFilter("BagisId IS NOT NULL");
+
+                    b.HasIndex("HastaneId");
+
+                    b.HasIndex("KullaniciId");
+
+                    b.HasIndex("KanGrubuId", "Tarih");
+
+                    b.ToTable("StokHareketleri", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StokHareketi_Bagis", "(Neden = 'Bagis' AND BagisId IS NOT NULL) OR (Neden <> 'Bagis' AND BagisId IS NULL)");
+
+                            t.HasCheckConstraint("CK_StokHareketi_Hesap", "(Tur = 'Giris' AND SonrakiStok = OncekiStok + Miktar) OR (Tur = 'Cikis' AND SonrakiStok = OncekiStok - Miktar)");
+
+                            t.HasCheckConstraint("CK_StokHareketi_Miktar_Pozitif", "Miktar > 0");
+
+                            t.HasCheckConstraint("CK_StokHareketi_Neden_Tur", "(Tur = 'Giris' AND Neden IN ('Bagis','TransferGiris','SayimFazlasi')) OR (Tur = 'Cikis' AND Neden IN ('Transfuzyon','TransferCikis','Imha','SayimEksigi'))");
+
+                            t.HasCheckConstraint("CK_StokHareketi_Stok_Negatif_Olamaz", "OncekiStok >= 0 AND SonrakiStok >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("KanBagis.Entities.StokUyarisi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AcilisTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Esik")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("GuncellemeTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("KanGrubuId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("KapanisTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Seviye")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StokDegeri")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KanGrubuId")
+                        .IsUnique()
+                        .HasFilter("KapanisTarihi IS NULL");
+
+                    b.ToTable("StokUyarilari", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StokUyarisi_Seviye", "Seviye IN ('Dusuk','Kritik')");
+                        });
+                });
+
             modelBuilder.Entity("KanBagis.Entities.TahminKaydi", b =>
                 {
                     b.Property<int>("Id")
@@ -968,6 +1103,49 @@ namespace KanBagis.DataAccess.Migrations
                     b.Navigation("Bagisci");
 
                     b.Navigation("Hastane");
+                });
+
+            modelBuilder.Entity("KanBagis.Entities.StokHareketi", b =>
+                {
+                    b.HasOne("KanBagis.Entities.Bagis", "Bagis")
+                        .WithMany()
+                        .HasForeignKey("BagisId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KanBagis.Entities.Hastane", "Hastane")
+                        .WithMany()
+                        .HasForeignKey("HastaneId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("KanBagis.Entities.KanGrubu", "KanGrubu")
+                        .WithMany()
+                        .HasForeignKey("KanGrubuId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KanBagis.Entities.Kullanici", "Kullanici")
+                        .WithMany()
+                        .HasForeignKey("KullaniciId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Bagis");
+
+                    b.Navigation("Hastane");
+
+                    b.Navigation("KanGrubu");
+
+                    b.Navigation("Kullanici");
+                });
+
+            modelBuilder.Entity("KanBagis.Entities.StokUyarisi", b =>
+                {
+                    b.HasOne("KanBagis.Entities.KanGrubu", "KanGrubu")
+                        .WithMany()
+                        .HasForeignKey("KanGrubuId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("KanGrubu");
                 });
 
             modelBuilder.Entity("KanBagis.Entities.Bagisci", b =>

@@ -14,6 +14,8 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
     public DbSet<Bildirim> Bildirimler => Set<Bildirim>();
     public DbSet<Kullanici> Kullanicilar => Set<Kullanici>();
     public DbSet<TahminKaydi> TahminKayitlari => Set<TahminKaydi>();
+    public DbSet<StokHareketi> StokHareketleri => Set<StokHareketi>();
+    public DbSet<StokUyarisi> StokUyarilari => Set<StokUyarisi>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,6 +32,9 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
         configurationBuilder.Properties<TalepDurumu>().HaveConversion<string>().HaveMaxLength(15);
         configurationBuilder.Properties<BildirimYaniti>().HaveConversion<string>().HaveMaxLength(15);
         configurationBuilder.Properties<DisKanalDurumu>().HaveConversion<string>().HaveMaxLength(12);
+        configurationBuilder.Properties<HareketTuru>().HaveConversion<string>().HaveMaxLength(10);
+        configurationBuilder.Properties<HareketNedeni>().HaveConversion<string>().HaveMaxLength(20);
+        configurationBuilder.Properties<StokDurumu>().HaveConversion<string>().HaveMaxLength(10);
         configurationBuilder.Properties<TahminKaynagi>().HaveConversion<string>().HaveMaxLength(20);
         configurationBuilder.Properties<KullaniciRolu>().HaveConversion<string>().HaveMaxLength(10);
     }

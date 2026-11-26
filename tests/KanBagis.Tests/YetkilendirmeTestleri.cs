@@ -7,6 +7,7 @@ using KanBagis.Entities;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace KanBagis.Tests;
@@ -160,6 +161,68 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
 
         Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
         Assert.Contains("genel verici", await yanit.Content.ReadAsStringAsync());
+    }
+
+    // ---------------- Stok Takip ve Uyarı Modülü (Hafta 11) ----------------
+
+    [Fact]
+    public async Task Stok_sayfasi_yalnizca_kuruma_acik()
+    {
+        var bagisci = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+        var yanit = await bagisci.GetAsync("/Stok");
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.Contains("/Hesap/ErisimEngellendi", yanit.Headers.Location!.ToString());
+
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var html = await kurum.GetStringAsync("/Stok");
+        Assert.Contains("Kan grubu stokları", html);
+        Assert.Contains("açık stok uyarısı", html);
+    }
+
+    [Fact]
+    public async Task Stok_hareketi_oturumdaki_kurum_adina_kaydedilir_formdaki_kimlik_yok_sayilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync(il: "Edirne"));
+        var token = await TokenAlAsync(kurum, "/Stok");
+
+        var yanit = await kurum.PostAsync("/Stok/Hareket", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["KanGrubuId"] = "7",
+            ["Neden"] = "TransferGiris",
+            ["Miktar"] = "2",
+            ["Aciklama"] = "Test transferi",
+            ["HastaneId"] = "1",        // saldırgan alan: dikkate alınmamalı
+            ["KullaniciId"] = "1",
+            ["__RequestVerificationToken"] = token,
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+
+        using var scope = _uygulama.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<KanBagis.DataAccess.KanBagisDbContext>();
+        var h = db.StokHareketleri.Include(x => x.Hastane).Where(x => x.Aciklama == "Test transferi").Single();
+        Assert.Equal("Edirne", h.Hastane!.Sehir);
+        Assert.NotEqual(1, h.HastaneId);
+    }
+
+    [Fact]
+    public async Task Stok_hareketi_csrf_belirteci_olmadan_reddedilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var yanit = await kurum.PostAsync("/Stok/Hareket", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["KanGrubuId"] = "1", ["Neden"] = "Transfuzyon", ["Miktar"] = "1",
+        }));
+        Assert.Equal(HttpStatusCode.BadRequest, yanit.StatusCode);
+    }
+
+    [Fact]
+    public async Task Kurum_panelinde_stok_uyarisi_ve_menude_uyari_sayisi_gorunur()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var html = await kurum.GetStringAsync("/KurumPanel");
+
+        Assert.Contains("Stok uyarısı:", html);
+        Assert.Contains("Açık stok uyarısı", html);   // menüdeki rozet
     }
 
     // ---------------- Yapay zekâ tahmini (Hafta 10) ----------------

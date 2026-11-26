@@ -1,0 +1,147 @@
+@using KanBagis.Business.Stok
+@model StokOzeti
+@{
+    ViewData["Title"] = "Stok takibi";
+    var istek = ViewBag.Istek as StokHareketIstegi;
+    var hatalar = ViewBag.Hatalar as IReadOnlyList<string>;
+    var onayGerekli = ViewBag.OnayGerekli as bool? ?? false;
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">Stok takibi</h1>
+        <p class="text-muted mb-0">Bölge kan stoğu, kritik eşik uyarıları ve giriş/çıkış kayıtları.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Hareketler" class="btn btn-outline-secondary">Hareket geçmişi</a>
+        <a asp-action="Uyarilar" class="btn btn-outline-secondary">Uyarı geçmişi</a>
+    </div>
+</div>
+
+@if (Model.AcikUyarilar.Count > 0)
+{
+    <div class="alert alert-danger">
+        <strong>@Model.AcikUyarilar.Count açık stok uyarısı:</strong>
+        @foreach (var u in Model.AcikUyarilar)
+        {
+            <span class="badge @Gorunum.StokDurumRozeti(u.Seviye) ms-1">@u.KanGrubu.Ad · @u.StokDegeri ünite (@StokService.DurumAdi(u.Seviye))</span>
+        }
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h2 class="h5">Kan grubu stokları</h2>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Kan grubu</th>
+                        <th class="text-end">Stok</th>
+                        <th>Durum</th>
+                        <th>Eşikler (kritik / düşük)</th>
+                        <th class="small text-muted">Son güncelleme</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.Satirlar)
+                    {
+                        var st = s.Stok;
+                        <tr class="@(st.Durum == StokDurumu.Kritik ? "table-danger" : st.Durum == StokDurumu.Dusuk ? "table-warning" : "")">
+                            <td class="fw-semibold">@st.KanGrubu.Ad</td>
+                            <td class="text-end fw-semibold">@st.UniteSayisi</td>
+                            <td><span class="badge @Gorunum.StokDurumRozeti(st.Durum)">@StokService.DurumAdi(st.Durum)</span></td>
+                            <td>
+                                <form asp-action="Esik" method="post" class="d-flex gap-1 align-items-center">
+                                    <input type="hidden" name="kanGrubuId" value="@st.KanGrubuId" />
+                                    <input type="number" name="kritikEsik" value="@st.KritikEsik" min="0" max="@StokService.EnFazlaEsik"
+                                           class="form-control form-control-sm" style="width:4.5rem" aria-label="@st.KanGrubu.Ad kritik eşik" />
+                                    <span>/</span>
+                                    <input type="number" name="uyariEsigi" value="@st.UyariEsigi" min="1" max="@StokService.EnFazlaEsik"
+                                           class="form-control form-control-sm" style="width:4.5rem" aria-label="@st.KanGrubu.Ad düşük eşik" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Kaydet</button>
+                                </form>
+                            </td>
+                            <td class="small text-muted">@st.GuncellemeTarihi.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="small text-muted">Stok kritik eşiğe eşit ya da altındaysa <strong>Kritik</strong>, düşük eşiğe eşit ya da altındaysa <strong>Düşük</strong>.
+            Uyarı kendiliğinden açılır ve stok eşiğin üstüne çıkınca kapanır.</p>
+    </div>
+
+    <div class="col-lg-5">
+        <h2 class="h5">Giriş / çıkış kaydı</h2>
+        @if (hatalar is { Count: > 0 })
+        {
+            <div class="alert @(onayGerekli ? "alert-warning" : "alert-danger") py-2">
+                @foreach (var h in hatalar) { <div>@h</div> }
+            </div>
+        }
+        <form asp-action="Hareket" method="post" class="card card-body">
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="form-label" for="KanGrubuId">Kan grubu</label>
+                    <select id="KanGrubuId" name="KanGrubuId" class="form-select">
+                        @foreach (var s in Model.Satirlar)
+                        {
+                            <option value="@s.Stok.KanGrubuId" selected="@(istek?.KanGrubuId == s.Stok.KanGrubuId)">@s.Stok.KanGrubu.Ad (@s.Stok.UniteSayisi)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label" for="Miktar">Miktar (ünite)</label>
+                    <input id="Miktar" name="Miktar" type="number" min="1" max="@StokService.EnFazlaMiktar" value="@(istek?.Miktar ?? 1)" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="Neden">Hareket</label>
+                    <select id="Neden" name="Neden" class="form-select">
+                        <optgroup label="Çıkış">
+                            @foreach (var n in new[] { HareketNedeni.Transfuzyon, HareketNedeni.TransferCikis, HareketNedeni.Imha, HareketNedeni.SayimEksigi })
+                            {
+                                <option value="@n" selected="@(istek?.Neden == n)">@StokService.NedenAdi(n)</option>
+                            }
+                        </optgroup>
+                        <optgroup label="Giriş (bağış, talep sayfasından kaydedilir)">
+                            @foreach (var n in new[] { HareketNedeni.TransferGiris, HareketNedeni.SayimFazlasi })
+                            {
+                                <option value="@n" selected="@(istek?.Neden == n)">@StokService.NedenAdi(n)</option>
+                            }
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="Aciklama">Açıklama <span class="small text-muted">(imha ve sayım düzeltmesinde zorunlu)</span></label>
+                    <input id="Aciklama" name="Aciklama" maxlength="@StokService.AciklamaEnFazla" value="@istek?.Aciklama" class="form-control" />
+                </div>
+                @if (onayGerekli)
+                {
+                    <div class="col-12 form-check ms-1">
+                        <input class="form-check-input" type="checkbox" id="KritikOnayi" name="KritikOnayi" value="true" />
+                        <label class="form-check-label fw-semibold" for="KritikOnayi">Stoğun kritik seviyeye düşeceğini biliyorum, onaylıyorum.</label>
+                    </div>
+                }
+                <div class="col-12">
+                    <button type="submit" class="btn btn-danger w-100">Kaydet</button>
+                </div>
+            </div>
+        </form>
+
+        <h2 class="h6 mt-4">Son hareketler</h2>
+        <ul class="list-group list-group-flush small">
+            @foreach (var h in Model.SonHareketler)
+            {
+                <li class="list-group-item px-0 d-flex justify-content-between">
+                    <span>
+                        <span class="fw-semibold @(h.Tur == HareketTuru.Giris ? "text-success" : "text-danger")">@(h.Tur == HareketTuru.Giris ? "+" : "−")@h.Miktar</span>
+                        @h.KanGrubu.Ad · @StokService.NedenAdi(h.Neden)
+                    </span>
+                    <span class="text-muted">@h.OncekiStok → @h.SonrakiStok · @h.Tarih.ToLocalTime().ToString("dd.MM HH:mm")</span>
+                </li>
+            }
+            @if (Model.SonHareketler.Count == 0) { <li class="list-group-item px-0 text-muted">Henüz hareket yok.</li> }
+        </ul>
+    </div>
+</div>
