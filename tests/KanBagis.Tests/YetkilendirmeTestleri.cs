@@ -163,6 +163,36 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         Assert.Contains("genel verici", await yanit.Content.ReadAsStringAsync());
     }
 
+    // ---------------- İstatistik panosu (Hafta 12) ----------------
+
+    [Fact]
+    public async Task Istatistik_panosu_yalnizca_kuruma_acik_grafikler_gorunur()
+    {
+        var bagisci = await GirisYapmisIstemciAsync(await BagisciOlusturAsync());
+        var engel = await bagisci.GetAsync("/Istatistik");
+        Assert.Contains("/Hesap/ErisimEngellendi", engel.Headers.Location!.ToString());
+        Assert.Contains("/Hesap/ErisimEngellendi", (await bagisci.GetAsync("/Istatistik/Csv")).Headers.Location!.ToString());
+
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var html = await kurum.GetStringAsync("/Istatistik?gun=365");
+        Assert.Contains("<svg", html);
+        Assert.Contains("Bildirim özeti", html);
+        Assert.Contains("Karşılanma oranı", html);
+        Assert.DoesNotContain("99900000001", html);   // KVKK: bağışçı TC'si yok
+    }
+
+    [Fact]
+    public async Task Istatistik_csv_indirilir()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var yanit = await kurum.GetAsync("/Istatistik/Csv?gun=30");
+
+        Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
+        Assert.Equal("text/csv", yanit.Content.Headers.ContentType!.MediaType);
+        Assert.Contains("30gun.csv", yanit.Content.Headers.ContentDisposition!.ToString());
+        Assert.Contains("Metrik;Değer", await yanit.Content.ReadAsStringAsync());
+    }
+
     // ---------------- Stok Takip ve Uyarı Modülü (Hafta 11) ----------------
 
     [Fact]

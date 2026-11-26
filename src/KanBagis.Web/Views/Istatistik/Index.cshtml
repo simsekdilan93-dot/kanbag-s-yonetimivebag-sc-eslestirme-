@@ -1,0 +1,142 @@
+@using KanBagis.Business.Istatistik
+@using KanBagis.Business.Stok
+@model Pano
+@{
+    ViewData["Title"] = "İstatistik panosu";
+    var f = Model.Filtre;
+    const string TalepRengi = "#b91c1c", BagisRengi = "#2563eb";
+    string Saat(double? s) => s is null ? "veri yok" : s < 48 ? $"{s:0.#} sa" : $"{s / 24:0.#} gün";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">İstatistik panosu</h1>
+        <p class="text-muted mb-0">@Model.Kapsam · @Model.Baslangic.ToString("dd.MM.yyyy") – @Model.Bitis.AddDays(-1).ToString("dd.MM.yyyy")</p>
+    </div>
+    <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
+        <select name="gun" class="form-select form-select-sm w-auto" aria-label="Dönem">
+            @foreach (var g in PanoFiltresi.GecerliGunler)
+            {
+                <option value="@g" selected="@(f.Gun == g)">Son @g gün</option>
+            }
+        </select>
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" id="hastanem" name="hastanem" value="true" checked="@f.YalnizcaHastanem" />
+            <label class="form-check-label small" for="hastanem">Yalnızca hastanem</label>
+        </div>
+        <div class="form-check mb-0">
+            <input class="form-check-input" type="checkbox" id="sentetik" name="sentetik" value="true" checked="@f.SentetikDahil" />
+            <label class="form-check-label small" for="sentetik">Sentetik geçmişi dahil et</label>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary">Uygula</button>
+        <a class="btn btn-sm btn-danger" asp-action="Csv" asp-route-gun="@f.Gun" asp-route-hastanem="@f.YalnizcaHastanem" asp-route-sentetik="@f.SentetikDahil">CSV indir</a>
+    </form>
+</div>
+
+<div class="card mb-3"><div class="card-body py-2"><strong>Özet:</strong> @Model.OzetMetni</div></div>
+
+@* ---- Metrik kartları ---- *@
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+        <div class="small text-muted">Talep</div>
+        <div class="fs-3 fw-semibold">@Model.Talep.TalepSayisi</div>
+        <div class="small">@Model.Talep.TalepEdilenUnite ünite · açık @Model.Talep.Acik · acil @Model.Talep.AcilOrani.Metin</div>
+    </div></div></div>
+    <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+        <div class="small text-muted">Karşılanma oranı</div>
+        <div class="fs-3 fw-semibold">@(Model.Talep.KarsilanmaOrani.Deger is { } k ? $"%{k * 100:0}" : "—")</div>
+        <div class="small">@Model.Talep.KarsilanmaOrani.Pay / @Model.Talep.KarsilanmaOrani.Payda sonuçlanan talep
+            @if (Model.Talep.KarsilanmaOrani.AzVeri && Model.Talep.KarsilanmaOrani.Payda > 0) { <span class="badge text-bg-light border">az veri</span> }</div>
+    </div></div></div>
+    <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+        <div class="small text-muted">Karşılanma süresi (medyan)</div>
+        <div class="fs-3 fw-semibold">@Saat(Model.Talep.MedyanKarsilanmaSaat)</div>
+        <div class="small">ortalama @Saat(Model.Talep.OrtalamaKarsilanmaSaat)</div>
+    </div></div></div>
+    <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+        <div class="small text-muted">Bağış</div>
+        <div class="fs-3 fw-semibold">@Model.Bagis.BagisUnite <span class="fs-6">ünite</span></div>
+        <div class="small">@Model.Bagis.BagisSayisi bağış · talebe bağlı @Model.Bagis.TalebeBagli · gönüllü @Model.Bagis.Gonullu</div>
+    </div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <h2 class="h5">Haftalık talep ve bağış</h2>
+        @SvgGrafik.Sutun("Haftalık talep edilen ve bağışlanan ünite",
+            Model.Haftalar.Select(h => h.Baslangic.ToString("dd.MM")).ToList(),
+            [new Seri("Talep edilen", TalepRengi, Model.Haftalar.Select(h => h.TalepUnite).ToList()),
+             new Seri("Bağışlanan", BagisRengi, Model.Haftalar.Select(h => h.BagisUnite).ToList())])
+        <p class="small text-muted">Her sütun haftanın ilk gününden başlayan 7 günü gösterir. Kaydı olmayan haftalar 0 olarak yer alır.</p>
+    </div>
+    <div class="col-lg-5">
+        <h2 class="h5">Kan grubuna göre</h2>
+        @SvgGrafik.Yatay("Kan grubuna göre talep ve bağış",
+            Model.KanGruplari.Select(g => g.KanGrubu).ToList(),
+            [new Seri("Talep edilen", TalepRengi, Model.KanGruplari.Select(g => g.TalepUnite).ToList()),
+             new Seri("Bağışlanan", BagisRengi, Model.KanGruplari.Select(g => g.BagisUnite).ToList())])
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <h2 class="h5">Bildirim özeti</h2>
+        <p class="small mb-1">
+            @Model.Bildirim.Gonderilen bildirim gönderildi · yanıt oranı <strong>@Model.Bildirim.YanitOrani.Metin</strong>
+            · kabul oranı <strong>@Model.Bildirim.KabulOrani.Metin</strong>
+        </p>
+        @SvgGrafik.Yigilmis("Bildirim yanıtları",
+            [new Parca("Kabul", "#15803d", Model.Bildirim.Kabul), new Parca("Red", "#6b7280", Model.Bildirim.Red),
+             new Parca("Beklemede", "#d97706", Model.Bildirim.Beklemede)])
+    </div>
+    <div class="col-lg-6">
+        <h2 class="h5">Telefona gönderim</h2>
+        <p class="small mb-1">Başarı oranı <strong>@Model.Bildirim.TelefonBasariOrani.Metin</strong> (kapalı ve kuyruktakiler hariç)</p>
+        @SvgGrafik.Yigilmis("Telefon bildirim kanalı durumu",
+            [new Parca("Gönderildi", "#15803d", Model.Bildirim.DisKanal[DisKanalDurumu.Gonderildi]),
+             new Parca("Başarısız", "#b91c1c", Model.Bildirim.DisKanal[DisKanalDurumu.Basarisiz]),
+             new Parca("Kuyrukta", "#d97706", Model.Bildirim.DisKanal[DisKanalDurumu.Kuyrukta]),
+             new Parca("Telefon kapalı", "#9ca3af", Model.Bildirim.DisKanal[DisKanalDurumu.Yok])])
+    </div>
+</div>
+
+<h2 class="h5 mt-3">Kan grubu tablosu</h2>
+<div class="table-responsive">
+    <table class="table table-sm align-middle">
+        <thead><tr><th>Kan grubu</th><th class="text-end">Talep edilen</th><th class="text-end">Bağışlanan</th><th class="text-end">Fark</th><th class="text-end">Güncel stok</th><th>Stok durumu</th></tr></thead>
+        <tbody>
+            @foreach (var g in Model.KanGruplari)
+            {
+                var fark = g.BagisUnite - g.TalepUnite;
+                <tr>
+                    <td class="fw-semibold">@g.KanGrubu</td>
+                    <td class="text-end">@g.TalepUnite</td>
+                    <td class="text-end">@g.BagisUnite</td>
+                    <td class="text-end @(fark < 0 ? "text-danger" : "")">@fark.ToString("+0;-0;0")</td>
+                    <td class="text-end">@g.Stok</td>
+                    <td><span class="badge @Gorunum.StokDurumRozeti(g.StokDurumu)">@StokService.DurumAdi(g.StokDurumu)</span></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<p class="small">Açık stok uyarısı: <a asp-controller="Stok" asp-action="Index">@Model.AcikStokUyarisi</a></p>
+
+@if (Model.VeriNotlari.Count > 0)
+{
+    <div class="alert alert-secondary small">
+        <strong>Veri notları:</strong>
+        <ul class="mb-0">@foreach (var n in Model.VeriNotlari) { <li>@n</li> }</ul>
+    </div>
+}
+
+<details class="small text-muted mb-3">
+    <summary>Metrik tanımları</summary>
+    <ul class="mt-1">
+        <li><strong>Karşılanma oranı</strong> = karşılanan / (karşılanan + iptal). Açık talepler henüz sonuçlanmadığı için dahil değildir.</li>
+        <li><strong>Karşılanma süresi</strong> = kapanış − oluşturma (yalnızca karşılanan talepler). Medyan, birkaç çok uzun talepten etkilenmediği için öne çıkarılır.</li>
+        <li><strong>Yanıt oranı</strong> = (kabul + red) / gönderilen bildirim. <strong>Kabul oranı</strong> = kabul / (kabul + red).</li>
+        <li><strong>Telefon başarı oranı</strong> = gönderildi / (gönderildi + başarısız).</li>
+        <li>Bağışlanan kan bağışçının kan grubuna sayılır. Oranlarda pay/payda birlikte yazılır; payda 5'ten küçükse "az veri" denir, 0 ise "veri yok".</li>
+    </ul>
+</details>

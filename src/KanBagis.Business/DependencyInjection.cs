@@ -1,6 +1,7 @@
 using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.DisServisler;
 using KanBagis.Business.Guvenlik;
+using KanBagis.Business.Istatistik;
 using KanBagis.Business.Kimlik;
 using KanBagis.Business.Paneller;
 using KanBagis.Business.Stok;
@@ -32,7 +33,8 @@ public static class DependencyInjection
         services.AddScoped<ITalepService, TalepService>();
         services.AddScoped<IBildirimService, BildirimService>();
         services.AddScoped<IPanelService, PanelService>();
-        services.AddScoped<IStokService, StokService>();   // Hafta 11: Stok Takip ve Uyarı Modülü
+        services.AddScoped<IStokService, StokService>();
+        services.AddScoped<IIstatistikService, IstatistikService>();   // Hafta 12: İstatistik Panosu   // Hafta 11: Stok Takip ve Uyarı Modülü
 
         // ---- Harici servisler (Hafta 9). Ayarlar Web katmanında appsettings + ortam değişkenlerinden bağlanır.
         // Harita / yol mesafesi: OSRM. Önbellek ve hız sınırı durumu tek örnek (singleton).

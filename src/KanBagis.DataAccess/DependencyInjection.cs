@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IKanStokRepository, KanStokRepository>();
         services.AddScoped<IBildirimRepository, BildirimRepository>();
         services.AddScoped<ITahminRepository, TahminRepository>();
+        services.AddScoped<IIstatistikRepository, IstatistikRepository>();
 
         return services;
     }

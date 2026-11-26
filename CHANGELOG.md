@@ -10,6 +10,18 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.5.0] — 2026-11-26 · İstatistik Panosu ve Bildirim Özeti
+
+### Eklendi
+- **İstatistik panosu (kurum):** talep sayısı/ünite, karşılanma oranı (açık talepler hariç), karşılanma süresi (medyan + ortalama), acil oranı, bağış sayısı/ünite, kan grubu bazında talep–bağış farkı ve stok durumu.
+- **Toplulaştırma sorguları:** sayma/toplama veritabanında (GROUP BY + COUNT/SUM); dönem, hastane ve sentetik veri süzgeçleri.
+- **Grafikler:** sunucuda üretilen SVG (haftalık sütun, kan grubu çubuk, yanıt ve telefon kanalı yığılmış çubuk); eksen 0'dan, değer etiketli, boş hafta 0, "veri yok" durumu.
+- **Bildirim özeti:** yanıt ve kabul oranı, telefon gönderim başarısı; sayılardan üretilen kısa özet metni ve veri notları (az veri, açık talep, sentetik veri).
+- **CSV dışa aktarma** (Türkçe Excel uyumlu, formül enjeksiyonuna karşı korumalı).
+- `docs/moduller/Istatistik-Panosu.md`; 33 yeni test (toplam 295).
+
+---
+
 ## [0.4.0] — 2026-11-26 · Stok Takip ve Uyarı Modülü
 
 ### Eklendi
