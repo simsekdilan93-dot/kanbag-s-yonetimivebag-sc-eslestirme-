@@ -135,14 +135,26 @@ Anahtar klasörü de yedeklenmeli; kaybolursa yalnızca oturumlar düşer, veri 
 
 ## 7. Kurulumun temiz ortamda doğrulanması (27.11.2026)
 
-README'deki adımlar, geliştirme klasöründen bağımsız boş bir klasörde **depo GitHub'dan yeniden klonlanarak** denendi:
+README'deki adımlar, geliştirme klasöründen bağımsız boş bir klasörde **depo GitHub'dan yeniden klonlanarak** denendi
+(.NET SDK 10.0.402, Windows 11):
 
 | Adım | Komut | Sonuç |
 |---|---|---|
-| Klonla | `git clone …/kanbag-s-yonetimivebag-sc-eslestirme-.git kanbagis` | Başarılı |
-| Çalıştır | `dotnet run --project src/KanBagis.Web` | Veritabanı oluştu, `http://localhost:5284` → 200 |
-| Sağlık | `GET /saglik` | `Healthy` |
-| Testler | `dotnet test` | Tümü geçti |
-| Yayın | `bash scripts/yayinla.sh` → `dotnet KanBagis.Web.dll` (Production) | 200, `/saglik` → `Healthy`, veritabanı yeni oluştu |
+| Klonla | `git clone …/kanbag-s-yonetimivebag-sc-eslestirme-.git kanbagis` | Depoda veritabanı ve `.env` yok |
+| Çalıştır | `dotnet run --project src/KanBagis.Web --urls http://localhost:5299` ¹ | Veritabanı kendiliğinden oluştu; `/`, `/KanGrubu`, `/Hesap/Giris` → 200; `/saglik` → `Healthy`; olmayan sayfa → 404 |
+| Testler | `dotnet test` | 336 / 336 geçti |
+| Yayın | `bash scripts/yayinla.sh` | Testler → `dotnet publish`; paket 28 dosya, içinde veritabanı yok |
+| Production | `ASPNETCORE_ENVIRONMENT=Production … dotnet KanBagis.Web.dll` | 200; veritabanı ve anahtarlar uygulama klasörünün dışında; hata sayfasında yığın izi yok |
 
-Ayrıntılı çıktılar Hafta 14 raporundadır.
+¹ Bu bilgisayarda 5284 portu başka bir uygulamada açıktı; README'nin "Sık karşılaşılan sorunlar" bölümündeki `--urls` çözümü kullanıldı.
+
+**Temiz kurulumda bulunan ve düzeltilen sorunlar** (geliştirme ortamında veritabanı zaten var olduğu için görünmüyordu):
+
+| Bulgu | Düzeltme | Sürüm |
+|---|---|---|
+| İlk açılışta her migration için EF uyarısı (SQLite tablo yeniden kurma) | Gerekçesiyle kapatıldı; "yeni sürümden önce yedek" notu | v0.7.1 |
+| Her SQL komutu loglanıyordu (ilk açılışta ~190 satır) | Varsayılan log düzeyi `Warning` | v0.7.1 |
+| Geliştirmede "HTTPS portu bulunamadı" uyarısı | HTTPS yönlendirmesi yalnızca Production'da | v0.7.1 |
+| Production'da anahtar dosyaları şifresiz ("No XML encryptor configured") | Windows'ta DPAPI; Linux'ta klasör izni | v0.7.2 |
+
+Düzeltmelerden sonra geliştirme ortamında açılış logu **14 satır, 0 uyarı, 0 hata**.
