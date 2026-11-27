@@ -211,6 +211,7 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         var html = await yanit.Content.ReadAsStringAsync();
         Assert.Contains("Sayfa bulunamadı", html);
         Assert.Contains("Ana sayfaya dön", html);
+        Assert.DoesNotContain("aria-current=\"page\"", html);   // hata sayfasında menüde açık sayfa yok
     }
 
     [Fact]

@@ -10,6 +10,14 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.7.3] — 2026-11-27 · Yama
+
+### Düzeltildi
+- 404/hata sayfalarında menüde "Ana sayfa" açık sayfa olarak işaretleniyordu (sayfalar Home controller'ında). Test eklendi.
+- "Ana içeriğe geç" bağlantısı odaklanınca koyu zemin üzerinde mavi yazıyla görünüyordu; beyaz yazı.
+
+---
+
 ## [0.7.2] — 2026-11-27 · Yama
 
 ### Düzeltildi

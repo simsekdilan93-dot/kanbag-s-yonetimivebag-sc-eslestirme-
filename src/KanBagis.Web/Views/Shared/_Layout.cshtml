@@ -1,6 +1,8 @@
 @{
     // Menüde açık sayfayı işaretlemek için (görsel "active" + ekran okuyucu için aria-current).
     var aktifController = ViewContext.RouteData.Values["controller"]?.ToString();
+    // Hata/durum sayfaları da Home controller'ında; onlarda "Ana sayfa" açık sayfa sayılmaz.
+    if (aktifController == "Home" && ViewContext.RouteData.Values["action"]?.ToString() != "Index") aktifController = null;
     string Aktif(string controller) => controller == aktifController ? "active fw-semibold" : "";
     string? Gecerli(string controller) => controller == aktifController ? "page" : null;
 }
@@ -17,7 +19,7 @@
 </head>
 <body>
     @* Klavye ve ekran okuyucu kullanıcıları menüyü atlayıp doğrudan içeriğe geçebilir (Tab ile ilk odaklanan öğe). *@
-    <a class="visually-hidden-focusable btn btn-dark position-absolute m-2" style="z-index:1100" href="#icerik">Ana içeriğe geç</a>
+    <a class="visually-hidden-focusable btn btn-dark text-white position-absolute m-2" style="z-index:1100" href="#icerik">Ana içeriğe geç</a>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
