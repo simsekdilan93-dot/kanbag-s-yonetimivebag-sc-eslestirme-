@@ -70,7 +70,12 @@ builder.Services.AddAuthorization();
 var anahtarKlasoru = builder.Configuration["Dagitim:AnahtarKlasoru"];
 var veriKoruma = builder.Services.AddDataProtection().SetApplicationName("KanBagis");
 if (!string.IsNullOrWhiteSpace(anahtarKlasoru))
+{
     veriKoruma.PersistKeysToFileSystem(new DirectoryInfo(anahtarKlasoru.Replace("{ContentRoot}", builder.Environment.ContentRootPath)));
+    // Anahtar dosyaları diskte şifresiz kalmasın: Windows'ta işletim sistemi (DPAPI) ile şifrelenir.
+    // Linux'ta bu yoktur; klasör yalnızca hizmet kullanıcısının okuyabileceği izinle korunur (docs/Dagitim.md).
+    if (OperatingSystem.IsWindows()) veriKoruma.ProtectKeysWithDpapi();
+}
 
 // 2) Ters vekil (nginx, IIS, Cloudflare tüneli): istemci HTTPS ile gelir ama uygulamaya HTTP ile ulaşır.
 //    X-Forwarded-Proto/For başlıkları okunmazsa uygulama isteği HTTP sanar (yanlış yönlendirme, güvenli çerez sorunu).

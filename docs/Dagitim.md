@@ -126,6 +126,8 @@ Anahtar klasörü de yedeklenmeli; kaybolursa yalnızca oturumlar düşer, veri 
 | **Veritabanı uygulama klasöründe** | Yeni sürümü kopyalayınca veriler gitti | `yayin/` üzerine yazılınca `kanbagis.db` silindi. Veritabanını uygulama dışında tutun (`ConnectionStrings__KanBagis`) |
 | **Vekil başlıkları okunmuyor** | Sonsuz HTTPS yönlendirmesi ya da oturum çerezi gelmiyor | Uygulama isteği HTTP sanıyor. `Dagitim__TersVekil=true` + nginx'te `X-Forwarded-Proto` |
 | **Yazma izni yok** | Açılışta `SQLite Error 14: unable to open database file` | Hizmet kullanıcısının veritabanı klasörüne yazma izni yok |
+| **"No XML encryptor configured"** uyarısı | Açılışta | Linux'ta anahtar dosyaları şifresiz yazılır (Windows'ta DPAPI ile şifreleniyor). Klasörü yalnızca hizmet kullanıcısına açın: `chmod 700 /var/lib/kanbagis/anahtarlar` |
+| **"Failed to determine the https port"** uyarısı | İlk http isteğinde | Sunucu HTTPS'siz, düz http ile yayında (ör. yerel demo). Vekil arkasında istekler HTTPS geldiği için görünmez; doğrudan yayında HTTPS adresi verin |
 | **Yanlış ortam** | Hata olunca yığın izi kullanıcıya görünüyor | `ASPNETCORE_ENVIRONMENT` `Development` kalmış; `Production` yapın |
 | **Statik dosyalar 500** | `styles.css` yüklenmiyor | `dotnet run` ile Production; `dotnet publish` çıktısını çalıştırın (Hafta 8'de yaşandı) |
 | **Harici servis kapalı / hız sınırı** | Mesafe kuş uçuşu, bildirim "kuyrukta" | Uygulama çalışmaya devam eder; loglarda neden yazar ([Harici-API.md](Harici-API.md)) |

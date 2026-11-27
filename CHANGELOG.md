@@ -10,6 +10,14 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.7.2] — 2026-11-27 · Yama
+
+### Düzeltildi
+- Production'da veri koruma anahtarları diskte şifresiz yazılıyordu ("No XML encryptor configured"). Windows'ta DPAPI ile şifreleniyor; Linux için klasör izni (`chmod 700`) belgelendi.
+- Dağıtım belgesine açılışta görülebilecek iki uyarının anlamı ve çözümü eklendi.
+
+---
+
 ## [0.7.1] — 2026-11-27 · Temiz kurulum bulguları
 
 Depo GitHub'dan boş bir klasöre klonlanıp README adımlarıyla kurulurken görülenler:
