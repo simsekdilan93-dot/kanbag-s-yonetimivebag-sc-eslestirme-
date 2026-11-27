@@ -82,3 +82,15 @@ Saklanan biçim: `PBKDF2-SHA256$600000$<tuz>$<hash>`. İterasyon sayısı kayıt
 - E-posta doğrulama ve "parolamı unuttum" akışı yok.
 - Parola değiştirildiğinde açık olan diğer oturumlar kapanmıyor. İleride güvenlik damgası (security stamp) eklenebilir.
 - Kilitleme hesap bazlı çalışıyor. IP bazlı istek sınırlama (rate limiting) eklenebilir.
+
+## 8. Dağıtım güvenliği (Hafta 14)
+
+- **Gizli değerler:** API anahtarları, Twilio bilgileri ve tokenlar yalnızca ortam değişkeninden okunur; `appsettings.json` ve
+  [.env.example](../.env.example) gizli değer içermez, gerçek `.env` `.gitignore` ile dışarıdadır. `DagitimTestleri.Depoda_gizli_anahtar_yok`
+  her test çalıştırmasında depodaki tüm metin dosyalarını anahtar biçimlerine karşı tarar.
+- **Veri koruma anahtarları:** oturum çerezi ve CSRF belirteci bu anahtarlarla şifrelenir; `Dagitim__AnahtarKlasoru` ile kalıcı
+  klasörde tutulur (yetkisiz kişilerin okuyamayacağı izinlerle).
+- **Ters vekil başlıkları** (`X-Forwarded-*`) yalnızca `Dagitim__TersVekil=true` iken okunur; doğrudan internete açık bir sunucuda
+  açılırsa istemci kendini HTTPS'ten gelmiş gibi gösterebilirdi.
+- **Hata sayfaları** ve **sağlık kontrolü** ayrıntı (yığın izi, bağlantı dizesi) vermez; ayrıntı yalnızca loga yazılır.
+- Sunucuda `ASPNETCORE_ENVIRONMENT=Production` zorunlu: `Development` ayrıntılı hata sayfası gösterir.

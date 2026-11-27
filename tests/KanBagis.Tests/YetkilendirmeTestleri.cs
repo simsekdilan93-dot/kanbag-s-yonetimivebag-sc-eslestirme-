@@ -193,6 +193,50 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         Assert.Contains("Metrik;Değer", await yanit.Content.ReadAsStringAsync());
     }
 
+    // ---------------- Hafta 14: dağıtım ve kullanılabilirlik ----------------
+
+    [Fact]
+    public async Task Saglik_kontrolu_girissiz_calisir_ve_ayrinti_vermez()
+    {
+        var yanit = await YeniIstemci().GetAsync("/saglik");
+        Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
+        Assert.Equal("Healthy", await yanit.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Olmayan_sayfa_turkce_404_sayfasi_gosterir_durum_kodu_korunur()
+    {
+        var yanit = await YeniIstemci().GetAsync("/boyle/bir/sayfa/yok");
+        Assert.Equal(HttpStatusCode.NotFound, yanit.StatusCode);
+        var html = await yanit.Content.ReadAsStringAsync();
+        Assert.Contains("Sayfa bulunamadı", html);
+        Assert.Contains("Ana sayfaya dön", html);
+    }
+
+    [Fact]
+    public async Task Sayfa_yapisi_erisilebilir_icerige_gec_baglantisi_ve_acik_sayfa_isareti()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync());
+        var html = await kurum.GetStringAsync("/Stok");
+
+        Assert.Contains("href=\"#icerik\"", html);                           // "Ana içeriğe geç"
+        Assert.Matches("<main[^>]*id=\"icerik\"", html);
+        Assert.Contains("aria-label=\"Menüyü aç / kapat\"", html);
+        Assert.Matches("aria-current=\"page\"[^>]*asp-controller=\"Stok\"|aria-current=\"page\"[^>]*href=\"/Stok\"", html);
+        Assert.Single(Regex.Matches(html, "aria-current=\"page\""));       // yalnızca açık sayfa
+    }
+
+    [Fact]
+    public async Task Talep_kapatma_formlari_geri_alinamaz_islem_icin_onay_ister()
+    {
+        var kurum = await GirisYapmisIstemciAsync(await KurumOlusturAsync(il: "Kars"));
+        var yanit = await kurum.PostAsync("/KurumTalep/Yeni", Form(await TokenAlAsync(kurum, "/KurumTalep/Yeni"),
+            ("KanGrubuId", "2"), ("UniteSayisi", "1"), ("Aciliyet", "Normal")));
+        var detay = await kurum.GetStringAsync(yanit.Headers.Location!.ToString());
+
+        Assert.Equal(2, Regex.Matches(detay, "<form(?=[^>]*/KurumTalep/Kapat/)(?=[^>]*data-onay=\"[^\"]+\")[^>]*>").Count);
+    }
+
     // ---------------- Hafta 13: hata yolları (mutlu yol dışı) ----------------
 
     [Fact]

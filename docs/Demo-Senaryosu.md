@@ -1,12 +1,14 @@
-# Vize Demo Senaryosu (v0.1.0)
+# Demo Senaryosu (v0.7.0)
 
-**Süre:** yaklaşık 5 dakika · **Amaç:** Kullanıcı + veritabanı + çekirdek modüllerin uçtan uca birlikte çalıştığını göstermek.
+**Süre:** yaklaşık 8 dakika (çekirdek akış 5 dk + ileri modüller 3 dk) · **Amaç:** Kurulumdan başlayarak tüm modüllerin birlikte çalıştığını göstermek.
+Vize sürümündeki (v0.1.0) ilk 11 adım aynen geçerlidir; 12–17. adımlar sonraki haftaların modülleridir.
 
 ## Hazırlık (demodan önce)
 
 ```bash
-dotnet test                              # 154 testin hepsi geçmeli
-dotnet run --project src/KanBagis.Web    # http://localhost:5284
+git clone https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-.git kanbagis && cd kanbagis
+dotnet test                              # testlerin hepsi geçmeli
+dotnet run --project src/KanBagis.Web    # http://localhost:5284  (README → Kurulum)
 ```
 
 - Tarayıcıda iki pencere aç: biri normal, biri **gizli pencere**. Böylece kurum ve bağışçı hesaplarıyla aynı anda oturum açık kalır.
@@ -26,13 +28,21 @@ dotnet run --project src/KanBagis.Web    # http://localhost:5284
 | 8 | Kurum | Talep detayını yenile | Kabul eden bağışçının **adı ve telefonu** görünüyor (yalnızca kabul edenler, açık rıza). |
 | 9 | Kurum | **Bağış alındı** | "Bağış kaydedildi ve stoğa eklendi… talep karşılandı" → talep **Karşılandı**. Kurum panelinde **A Rh+ stoğu 1 arttı** (Hafta 8 entegrasyonu). |
 | 10 | Bağışçı | Paneli yenile | Son bağış **bugün**, "Şu an bağış yapamazsınız" ve **uygun olunacak tarih** (kadın 120 / erkek 90 gün). Modül A, Modül B'nin kaydettiği bağışı görüyor. |
-| 11 | — | GitHub → **Tags → v0.1.0** (depo sayfasında dal seçicinin yanındaki "Tags") | Etiketlenmiş ara sürüm: `git tag -a v0.1.0`. `CHANGELOG.md` sürüm notları. |
+| 11 | — | GitHub → **Tags** (depo sayfasında dal seçicinin yanındaki "Tags") | Her haftanın etiketlenmiş sürümü (`v0.1.0` … `v0.7.0`), `CHANGELOG.md` sürüm notları. |
+| 12 | Kurum | **Stok takibi** → A Rh+ için 16 ünite **Transfer (giden)** | Stok kritik eşiğe inecekse **onay** istenir; onaydan sonra **KRİTİK uyarı** açılır, menüde uyarı sayısı artar (Hafta 11). |
+| 13 | Kurum | 0 Rh- için 10 ünite **Transfer (gelen)** | Stok eşiğin üstüne çıkınca uyarı **kendiliğinden kapanır**; **Hareket geçmişi**nde önceki → sonraki stok ve 9. adımdaki bağış da görünür. |
+| 14 | Kurum | **Stok tahmini** → (gerekirse sentetik geçmiş ekle) → **Tahmini güncelle** | Gelecek hafta tahmini ve risk; yapay zekâ çıktısı doğrulanıyor, anahtar yoksa istatistiksel tahmin; **AI kullanım günlüğü**nde istem (Hafta 10). |
+| 15 | Kurum | **İstatistik** → son 365 gün, sonra "yalnızca hastanem" | Karşılanma oranı pay/payda ile, medyan süre, grafikler (eksen 0'dan), bildirim özeti, **CSV indir** (Hafta 12). |
+| 16 | — | Adres çubuğuna `/boyle-bir-sayfa-yok`, sonra `/saglik` | Türkçe 404 sayfası; sağlık kontrolü `Healthy` (Hafta 14). |
+| 17 | — | Klavyede **Tab** | İlk Tab'da "Ana içeriğe geç" bağlantısı (erişilebilirlik, Hafta 14). |
 
 ## Demo sırasında söylenecek tek cümleler
 
 - **Mimari:** "Web yalnızca Business'ı, Business yalnızca DataAccess'i çağırıyor; her adımda veri oradan geçiyor."
 - **Entegrasyon:** "Bağış alındı düğmesi tek transaction'da üç iş yapıyor: bağış kaydı, stok artışı, gerekirse talebin kapanması."
-- **Regresyon:** "Bu hafta eklediğim her şeyden sonra önceki 144 test de çalışıyor; hiçbir eski özellik bozulmadı."
+- **Regresyon:** "Her hafta eklediğim her şeyden sonra önceki testlerin hepsi de çalışıyor; hiçbir eski özellik bozulmadı."
+- **Güvenilirlik:** "Kurallar hem serviste hem veritabanında: aynı anda gelen istekler bile ikinci açık talep ya da eksi stok oluşturamıyor."
+- **Dağıtım:** "Gizli anahtarlar depoda değil ortam değişkeninde; bunu her test çalıştırmasında bir test denetliyor."
 
 ## Bir şey ters giderse
 

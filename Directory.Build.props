@@ -7,6 +7,6 @@
     Git etiketi aynı numarayla atılır: v0.1.0
   -->
   <PropertyGroup>
-    <Version>0.6.1</Version>
+    <Version>0.7.0</Version>
   </PropertyGroup>
 </Project>

@@ -10,6 +10,20 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.7.0] — 2026-11-27 · Dokümantasyon, arayüz iyileştirme ve dağıtım hazırlığı
+
+### Eklendi
+- **README** baştan yazıldı: kurulum (gereksinimler, adımlar, sık sorunlar), kullanım, yapılandırma tablosu, testler, dağıtım, belge dizini. Kurulum, depo GitHub'dan boş klasöre klonlanarak doğrulandı.
+- **Teknik dokümantasyon:** `docs/Mimari.md` (tüm modüller, istek akışı, tasarım kararları), `docs/Uc-Noktalar.md` (HTTP adresleri, yöntem, rol), `docs/Dagitim.md` (ortam değişkenleri, systemd/nginx örneği, yedekleme, olası sorunlar), `docs/Erisilebilirlik.md`, `docs/Haftalik-Ilerleme.md`; demo senaryosu ve güvenlik notu güncellendi.
+- **Dağıtım:** `/saglik` sağlık kontrolü (veritabanı erişimi dahil), kalıcı veri koruma anahtarları (`Dagitim__AnahtarKlasoru`), ters vekil desteği (`Dagitim__TersVekil`), `.env.example`, `scripts/yayinla.ps1` ve `scripts/yayinla.sh` (testler geçmezse paket oluşturmaz).
+- **Arayüz / erişilebilirlik:** "Ana içeriğe geç" bağlantısı, menüde açık sayfa (`aria-current`), Türkçe 404/403/400 sayfaları, geri alınamayan talep kapatmada onay, çift gönderim kilidi, kapatılabilir mesajlar. axe-core denetimi: 11 ihlal → 0 (17 sayfa).
+- `DagitimTestleri`: depoda gizli anahtar yok, örnek ortam dosyası boş, belgeler güncel (koddaki her yapılandırma bölümü belgede). Toplam 336 test.
+
+### Değişti
+- Renk karşıtlığı yetersiz iki düğme koyulaştırıldı.
+
+---
+
 ## [0.6.1] — 2026-11-27 · Yama
 
 ### Düzeltildi

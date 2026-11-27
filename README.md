@@ -1,90 +1,160 @@
 # 🩸 Kan Bağışı Yönetim Sistemi
 
-Kan bağışçılarını, hastanelerin kan taleplerini ve kan stoğunu tek bir yerden yöneten web uygulaması. Bir kan grubu için talep açıldığında sistem uygun bağışçılara bildirim gönderir.
+Kan bağışçılarını, hastanelerin kan taleplerini ve bölgedeki kan stoğunu tek yerden yöneten web uygulaması.
+Hastane bir kan grubu için talep açtığında sistem **kan grubu uyumlu, bağış yapabilecek durumda ve yakındaki**
+bağışçıları bulur, onlara bildirim gönderir; bağışçı "Gelebilirim" der, bağış kaydedilince stok artar ve talep kapanır.
 
-**Güncel sürüm: [v0.2.0](https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-/releases/tag/v0.2.0) (harici API entegrasyonu)** · [Sürüm notları](CHANGELOG.md) · [Demo senaryosu](docs/Demo-Senaryosu.md)
+> Bingöl Üniversitesi · Bilgisayar Programcılığı · Bilgisayar Uygulamaları I — Proje P08 · Dilan Şimşek
+> **Sürüm:** v0.7.0 · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
+
+## İçindekiler
+
+- [Özellikler](#özellikler)
+- [Kurulum](#kurulum)
+- [Kullanım](#kullanım)
+- [Yapılandırma](#yapılandırma)
+- [Testler](#testler)
+- [Dağıtım](#dağıtım)
+- [Proje yapısı](#proje-yapısı)
+- [Dokümantasyon](#dokümantasyon)
+- [Güvenlik ve kişisel veriler](#güvenlik-ve-kişisel-veriler)
 
 ## Özellikler
 
-- ✅ Kayıt ve giriş (bağışçı / kurum), rol bazlı paneller
-- ✅ Bağışçı profili, bağış uygunluk kuralı (yaş, kilo, 90/120 gün), kan grubu uyumluluğu
-- ✅ Hastane kan talebi oluşturma (normal / acil)
-- ✅ Kan grubu uyumluluğu ve konuma (mesafeye) göre eşleştirme, bildirim gönderme ve yanıt takibi
-- ✅ Bağış kaydı → kan stoğu artışı → talebin kendiliğinden kapanması (uçtan uca)
-- ✅ Gerçek yol mesafesi (OSRM) ve telefona anlık bildirim (ntfy) / SMS (Twilio)
-- ✅ Stok takibi: giriş/çıkış kaydı, kan grubu başına kritik eşik ve otomatik uyarı
-- ✅ İstatistik panosu: talep/bağış metrikleri, grafikler, bildirim özeti, CSV dışa aktarma
-- ✅ Talep ve stok tahmini: istatistiksel tahmin + yapay zekâ (Claude), doğrulanmış çıktı ve AI kullanım günlüğü
-
-## Teknolojiler
-
-| Alan | Teknoloji |
+| Kullanıcı | Yapabilecekleri |
 |---|---|
-| Dil / Çatı | C#, ASP.NET Core MVC (.NET 10) |
-| ORM | Entity Framework Core |
-| Veritabanı | SQLite |
-| Arayüz | Razor View + Bootstrap |
-| Kimlik doğrulama | Çerez (cookie) oturumu, PBKDF2 parola hash'i, rol tabanlı yetkilendirme |
+| **Bağışçı** | Kayıt (TC algoritması, 81 il), profil; bağışa uygun mu (yaş 18–65, kilo ≥ 50, son bağıştan 90/120 gün) ve ne zaman uygun olacağı; gelen kan çağrılarına "Gelebilirim / Gelemem"; hastaneye yol mesafesi ve tarifi; isteğe bağlı telefona anlık bildirim / SMS |
+| **Kurum (hastane)** | Kan talebi açma (normal / acil) → uygun bağışçılara otomatik bildirim; kabul edenleri görme, bağışı kaydetme; **stok takibi** (giriş/çıkış, kritik eşik uyarısı); **stok tahmini** (istatistik + yapay zekâ); **istatistik panosu** (grafikler, CSV) |
+| **Herkes** | Kan grubu uyumluluk tablosu ("kim kime kan verebilir") |
+
+## Kurulum
+
+### Gereksinimler
+
+| Araç | Sürüm | Kontrol |
+|---|---|---|
+| [.NET SDK](https://dotnet.microsoft.com/download) | **10.0** | `dotnet --version` → `10.0.x` |
+| Git | herhangi | `git --version` |
+
+Veritabanı (SQLite) uygulamanın içinde gelir; ayrıca kurulum **gerekmez**. İnternet yalnızca ilk derlemede NuGet paketleri için gerekir.
+
+### Adımlar
+
+```bash
+git clone https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-.git kanbagis
+cd kanbagis
+dotnet run --project src/KanBagis.Web
+```
+
+Terminalde `Now listening on: http://localhost:5284` yazınca tarayıcıda **http://localhost:5284** adresini açın.
+
+İlk çalıştırmada:
+- Veritabanı (`src/KanBagis.Web/kanbagis.db`) **kendiliğinden** oluşturulur ve tüm migration'lar uygulanır.
+- Örnek veri yüklenir: 8 kan grubu, 3 hastane, 10 **sentetik** bağışçı, stoklar, birkaç talep ve bağış.
+- Harici servisler (yol mesafesi, anlık bildirim) anahtarsız çalışır; SMS ve yapay zekâ anahtar verilmezse kapalı kalır ve uygulama yine çalışır.
+
+Sıfırdan başlamak için uygulamayı durdurup `src/KanBagis.Web/kanbagis.db` dosyasını silin.
+
+### Sık karşılaşılan sorunlar
+
+| Belirti | Çözüm |
+|---|---|
+| `The current .NET SDK does not support targeting .NET 10.0` | .NET 10 SDK kurun (`dotnet --list-sdks`). |
+| `Failed to bind to address ... address already in use` | 5284 portu dolu: `dotnet run --project src/KanBagis.Web --urls http://localhost:5299` |
+| Windows'ta "Bu uygulama engellendi" / DLL yüklenemiyor | Akıllı Uygulama Denetimi (Smart App Control) derlenen DLL'leri engelleyebilir; Windows Güvenliği'nden kapatıp yeniden başlatın. |
+| Sayfa açılıyor ama giriş yapılamıyor | Örnek veride hesap **yoktur** (parolalar depoda paylaşılmaz); **Kayıt ol** ile hesap oluşturun. |
+
+## Kullanım
+
+1. **Kurum** hesabı açın (*Kayıt ol → Kurum olarak kayıt ol*), il olarak örneğin Bingöl seçin.
+2. *Kurum paneli → + Yeni talep*: kan grubu, ünite, aciliyet. Sistem kaç bağışçıya bildirim gittiğini söyler.
+3. Başka bir tarayıcı penceresinde (gizli pencere) **bağışçı** hesabı açın; aynı il ve uyumlu kan grubu.
+   Denemek için algoritmaya uyan TC örnekleri: `10000001440`, `10000002744`, `10000003116` (yalnızca yerel deneme veritabanında kullanın).
+4. Bağışçı *Panelim*'de çağrıyı görür → **Gelebilirim**.
+5. Kurum talep detayında bağışçının adını ve telefonunu görür → **Bağış alındı**: stok artar, talep karşılanır.
+6. *Stok takibi*, *Stok tahmini* ve *İstatistik* sayfalarında sonuçları izleyin.
+
+Ayrıntılı adım adım senaryo: [docs/Demo-Senaryosu.md](docs/Demo-Senaryosu.md).
+
+## Yapılandırma
+
+Ayarlar `src/KanBagis.Web/appsettings.json` dosyasında; **gizli değerler (anahtar, parola) bu dosyada yoktur** ve
+yalnızca **ortam değişkeninden** okunur. ASP.NET Core'da `__` (iki alt çizgi) bölüm ayırıcısıdır:
+`DisServisler__Twilio__AuthToken` → `DisServisler:Twilio:AuthToken`. Örnek dosya: [.env.example](.env.example).
+
+| Ortam değişkeni | Varsayılan | Açıklama |
+|---|---|---|
+| `ASPNETCORE_ENVIRONMENT` | `Production` | `Development` ayrıntılı hata sayfası gösterir; sunucuda kullanmayın |
+| `ASPNETCORE_URLS` | `http://localhost:5284` (dotnet run) | Dinlenecek adres |
+| `ConnectionStrings__KanBagis` | `Data Source={ContentRoot}/kanbagis.db` | SQLite dosyasının yolu |
+| `Dagitim__AnahtarKlasoru` | *(boş)* | Oturum/CSRF anahtarlarının kalıcı klasörü (sunucuda **verin**) |
+| `Dagitim__TersVekil` | `false` | nginx / IIS / Cloudflare tüneli arkasındaysa `true` |
+| `DisServisler__Mesafe__Etkin` | `true` | OSRM yol mesafesi; `false` → kuş uçuşu |
+| `DisServisler__Ntfy__Etkin` / `__Token` | `true` / *(boş)* | Telefona anlık bildirim (ntfy) |
+| `DisServisler__Twilio__AccountSid` / `__AuthToken` / `__Gonderen` | *(boş)* | SMS; üçü de verilmezse SMS kapalı |
+| `ANTHROPIC_API_KEY` | *(boş)* | Yapay zekâ tahmini; yoksa istatistiksel tahmin |
+
+PowerShell'de yalnızca o oturum için: `$env:ANTHROPIC_API_KEY = "..."`. Bash: `export ANTHROPIC_API_KEY=...`.
+Tüm ayarlar ve sunucu örnekleri: [docs/Dagitim.md](docs/Dagitim.md).
+
+## Testler
+
+```bash
+dotnet test                                   # tüm testler
+dotnet test --filter "Tur=Regresyon"          # düzeltilen hataların regresyon testleri
+dotnet test --settings tests/kapsam.runsettings --collect:"XPlat Code Coverage"   # kapsam
+```
+
+Birim, entegrasyon (gerçek SQLite) ve uçtan uca (gerçek HTTP) testleri; harici servisler sahte sunucuyla sınanır, internete çıkılmaz.
+Sonuçlar ve kapsam: [docs/test/Test-Raporu.md](docs/test/Test-Raporu.md) · Hatalar: [docs/test/Hata-Kayitlari.md](docs/test/Hata-Kayitlari.md).
+
+## Dağıtım
+
+```bash
+bash scripts/yayinla.sh            # ya da: powershell -ExecutionPolicy Bypass -File scripts\yayinla.ps1
+cd yayin
+ASPNETCORE_ENVIRONMENT=Production dotnet KanBagis.Web.dll --urls http://0.0.0.0:5284
+```
+
+Betik önce testleri çalıştırır, başarısızsa paket oluşturmaz. Sunucuda veritabanı ve anahtar klasörünün kalıcı olması,
+ters vekil, HTTPS, sağlık kontrolü (`/saglik`) ve yedekleme: [docs/Dagitim.md](docs/Dagitim.md).
 
 ## Proje yapısı
 
 ```
 KanBagis.slnx
-src/
-├── KanBagis.Entities/     Varlık sınıfları
-├── KanBagis.DataAccess/   Veri katmanı (EF Core, DbContext, Repository, Migrations)
-├── KanBagis.Business/     İş katmanı (servisler, iş kuralları)
-└── KanBagis.Web/          Sunum katmanı (MVC)
-tests/
-└── KanBagis.Tests/        CRUD, kısıt, parola, giriş, yetkilendirme ve entegrasyon testleri (xUnit)
-docs/
-├── ER-Diyagrami.md        Veri modeli
-├── Mimari.md              Katmanlı mimari şeması
-├── Guvenlik-Notu.md       Kimlik doğrulama ve yetkilendirme güvenlik notu
-├── moduller/              Modül açıklamaları (Bağışçı ve Kan Grubu, Talep ve Eşleştirme)
-├── Harici-API.md          Harita ve bildirim API'leri, hata yönetimi, anahtarlar
-├── Demo-Senaryosu.md      Vize demosu adım adım
-├── Vize-Hazirlik.md       Vize sözlü soruları ve cevapları
-└── db/                    SQL şema, örnek sorgular, indeks açıklamaları
+├── src/
+│   ├── KanBagis.Entities     Varlık sınıfları ve enum'lar (Bagisci, KanTalebi, KanStok…)
+│   ├── KanBagis.DataAccess   EF Core DbContext, yapılandırmalar, migration'lar, repository'ler, örnek veri
+│   ├── KanBagis.Business     İş kuralları ve servisler (eşleştirme, stok, tahmin, istatistik, harici API'ler)
+│   └── KanBagis.Web          ASP.NET Core MVC: controller'lar, görünümler, oturum, yapılandırma
+├── tests/
+│   ├── KanBagis.Tests        xUnit testleri
+│   ├── kapsam.runsettings    kapsam ölçüm ayarı
+│   └── araclar/              kapsam özeti ve test piramidi betikleri
+├── scripts/                  yayın paketi betikleri
+└── docs/                     teknik dokümantasyon
 ```
 
-Ayrıntılar: [Mimari şema](docs/Mimari.md) · [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) · [Güvenlik notu](docs/Guvenlik-Notu.md) · [Bağışçı modülü](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Eşleştirme modülü](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Vize hazırlık](docs/Vize-Hazirlik.md) · [Harici API](docs/Harici-API.md)
+Bağımlılık tek yönlü: **Web → Business → DataAccess → (SQLite)**; Entities ortak. Ayrıntı: [docs/Mimari.md](docs/Mimari.md).
 
-## Çalıştırma
+## Dokümantasyon
 
-Gereksinim: [.NET 10 SDK](https://dotnet.microsoft.com/download)
+| Belge | İçerik |
+|---|---|
+| [Mimari](docs/Mimari.md) | Katmanlar, modüller, istek akışı, tasarım kararları |
+| [Uç noktalar](docs/Uc-Noktalar.md) | Tüm HTTP adresleri, yöntemleri ve yetkileri |
+| [ER diyagramı](docs/ER-Diyagrami.md) · [Veritabanı](docs/db/README.md) | Tablolar, ilişkiler, kısıtlar, şema SQL'i |
+| Modüller | [Bağışçı ve kan grubu](docs/moduller/Bagisci-ve-Kan-Grubu-Modulu.md) · [Talep ve eşleştirme](docs/moduller/Talep-ve-Eslestirme-Modulu.md) · [Stok takip](docs/moduller/Stok-Takip-ve-Uyari-Modulu.md) · [İstatistik](docs/moduller/Istatistik-Panosu.md) |
+| [Harici API'ler](docs/Harici-API.md) · [Yapay zekâ](docs/Yapay-Zeka-Bileseni.md) | OSRM, ntfy, Twilio; Claude ile tahmin |
+| [Güvenlik notu](docs/Guvenlik-Notu.md) · [Erişilebilirlik](docs/Erisilebilirlik.md) | Parola, oturum, CSRF, KVKK; WCAG denetimi |
+| [Dağıtım](docs/Dagitim.md) | Ortam değişkenleri, yayın, sunucu, sorunlar |
+| [Test raporu](docs/test/Test-Raporu.md) · [Hata kayıtları](docs/test/Hata-Kayitlari.md) | Test piramidi, kapsam, düzeltilen hatalar |
+| [Demo senaryosu](docs/Demo-Senaryosu.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md) | Sunum akışı, haftalar |
 
-```bash
-git clone https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-.git
-cd kanbag-s-yonetimivebag-sc-eslestirme-
-dotnet tool restore                    # dotnet-ef aracını kurar
-dotnet run --project src/KanBagis.Web  # ilk açılışta veritabanı örnek veriyle oluşturulur
-```
+## Güvenlik ve kişisel veriler
 
-Örnek veride kullanıcı hesabı **yoktur** (depo herkese açık olduğu için parola paylaşılmaz). Siteyi açıp **Kayıt ol** ile bir bağışçı ya da kurum hesabı oluşturun.
-
-Bağışçı kaydında TC kimlik numarası algoritmayla kontrol edilir. Denemek için algoritmaya uyan örnek numaralar: `10000001440`, `10000002744`, `10000003116`. Algoritmaya uyan her numara gerçek bir kişiye ait olabilir; bu numaraları yalnızca kendi bilgisayarınızdaki deneme veritabanında kullanın.
-
-Testleri çalıştırmak için:
-
-```bash
-dotnet test                                   # tüm testler (317)
-dotnet test --filter "Tur=Regresyon"          # yalnızca düzeltilen hataların regresyon testleri
-dotnet test --settings tests/kapsam.runsettings --collect:"XPlat Code Coverage"   # kapsam ölçümü
-```
-
-Test sonuç raporu: [docs/test/Test-Raporu.md](docs/test/Test-Raporu.md) · Hata kayıtları: [docs/test/Hata-Kayitlari.md](docs/test/Hata-Kayitlari.md)
-
-## Haftalık ilerleme
-
-- [x] **Hafta 3:** Kurulum, katmanlı proje iskeleti, ER diyagramı, GitHub deposu
-- [x] **Hafta 4:** Veritabanı şeması (migration), ilişkiler/kısıtlar/indeksler, sentetik örnek veri, CRUD veri erişim katmanı, testler
-- [x] **Hafta 5:** Kayıt/giriş, PBKDF2 parola hash'i + tuz, hesap kilitleme, çerez oturumu, rol tabanlı erişim (Bağışçı/Kurum), güvenlik notu
-- [x] **Hafta 6:** Bağışçı kaydı ve kan grubu yönetimi: ABO/Rh modeli ve uyumluluk, bağış uygunluk kuralı, TC algoritması, 81 il listesi, profil düzenleme (sahiplik kontrolü), kan grubu kilidi
-- [x] **Hafta 7:** Talep ve grup/konum eşleştirme: talep açma, uyumlu + uygun bağışçıları mesafeye göre sıralama (Haversine), aciliyete göre yarıçap ve bildirim kotası, Kabul/Red yanıtı, kurumun kabul edenleri görmesi
-- [x] **Hafta 8 (VİZE):** Uçtan uca entegrasyon (bağış kaydı → stok → talep kapanışı), bilinen hataların giderilmesi, entegrasyon testleri, `v0.1.0` sürüm etiketi, demo senaryosu ve sözlü hazırlık
-- [x] **Hafta 9:** Harici API entegrasyonu: OSRM ile yol mesafesi ve yol tarifi, ntfy ile anlık bildirim, Twilio ile SMS, arka planda gönderim kuyruğu, zaman aşımı / yeniden deneme / hız sınırı yönetimi, anahtarların ortam değişkeninde saklanması (`v0.2.0`)
-- [x] **Hafta 10:** Yapay zekâ bileşeni: geçmiş talep verisinden istatistiksel tahmin + Claude ile talep/stok tahmini, istem tasarımı, çıktı doğrulama (hatalı/boş çıktıda istatistiğe dönüş), AI kullanım günlüğü, şeffaflık notu (`v0.3.0`, [docs/Yapay-Zeka-Bileseni.md](docs/Yapay-Zeka-Bileseni.md))
-- [x] **Hafta 11:** Stok Takip ve Uyarı Modülü: kan grubu başına kritik/düşük eşik, giriş/çıkış kaydı (atomik, silinemez), kritik eşik uyarısı (aç/güncelle/kapat), bağış kaydıyla entegrasyon (`v0.4.0`, [docs/moduller/Stok-Takip-ve-Uyari-Modulu.md](docs/moduller/Stok-Takip-ve-Uyari-Modulu.md))
-- [x] **Hafta 12:** İstatistik Panosu ve Bildirimler: bağış/talep istatistikleri (toplulaştırma sorguları), SVG grafikler, bildirim özeti ve özet metni, CSV dışa aktarma (`v0.5.0`, [docs/moduller/Istatistik-Panosu.md](docs/moduller/Istatistik-Panosu.md))
-- [x] **Hafta 13:** Test ve hata ayıklama: sınır ve eşzamanlılık testleri, 6 hatanın ayıklanıp düzeltilmesi (Türkiye saati, 29 Şubat, Türkçe "İ", yarış durumu), test piramidi ve kapsam raporu (`v0.6.0`, `v0.6.1`, [docs/test/Test-Raporu.md](docs/test/Test-Raporu.md), [docs/test/Hata-Kayitlari.md](docs/test/Hata-Kayitlari.md))
+- Parolalar PBKDF2 (SHA-256, tuzlu) ile saklanır; 5 hatalı denemede hesap 15 dakika kilitlenir.
+- Tüm formlarda CSRF koruması; rol ve **sahiplik** kontrolü sunucuda (başka hastanenin talebi açılamaz).
+- Bağışçının adı ve telefonu yalnızca **kabul ettiği** talebin hastanesine gösterilir; panolar, telefon mesajları ve yapay zekâ istemi kişisel veri içermez.
+- Depodaki örnek bağışçılar sentetiktir (TC numaraları bilerek geçersiz); gizli anahtar depoda yoktur — bunu bir test denetler.

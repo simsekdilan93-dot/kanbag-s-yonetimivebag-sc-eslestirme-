@@ -7,6 +7,9 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.WebEncoders;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
+using KanBagis.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,7 +63,35 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
+// ---- Dağıtım hazırlığı (Hafta 14) ----
+// 1) Veri koruma anahtarları: oturum çerezi ve CSRF belirteci bu anahtarlarla şifrelenir. Varsayılan olarak
+//    kullanıcı profilinde/bellekte tutulur; sunucu ya da kapsayıcı (container) yeniden kurulunca kaybolur ve
+//    herkesin oturumu düşer, açık formlar "400 Bad Request" verir. Kalıcı bir klasör verilirse orada saklanır.
+var anahtarKlasoru = builder.Configuration["Dagitim:AnahtarKlasoru"];
+var veriKoruma = builder.Services.AddDataProtection().SetApplicationName("KanBagis");
+if (!string.IsNullOrWhiteSpace(anahtarKlasoru))
+    veriKoruma.PersistKeysToFileSystem(new DirectoryInfo(anahtarKlasoru.Replace("{ContentRoot}", builder.Environment.ContentRootPath)));
+
+// 2) Ters vekil (nginx, IIS, Cloudflare tüneli): istemci HTTPS ile gelir ama uygulamaya HTTP ile ulaşır.
+//    X-Forwarded-Proto/For başlıkları okunmazsa uygulama isteği HTTP sanar (yanlış yönlendirme, güvenli çerez sorunu).
+//    Başlıklar sahte gönderilebileceği için yalnızca vekil arkasındayken açılmalı.
+var tersVekil = builder.Configuration.GetValue<bool>("Dagitim:TersVekil");
+if (tersVekil)
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(o =>
+    {
+        o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        o.KnownIPNetworks.Clear();   // vekil aynı makinede değilse (kapsayıcı ağı) adresi bilinmez
+        o.KnownProxies.Clear();
+    });
+}
+
+// 3) Sağlık kontrolü: yük dengeleyici / izleme aracı /saglik adresine bakar ("Healthy" ya da 503).
+builder.Services.AddHealthChecks().AddCheck<VeritabaniSaglikKontrolu>("veritabani");
+
 var app = builder.Build();
+
+if (tersVekil) app.UseForwardedHeaders();
 
 // Uygulama açılırken bekleyen migration'lar uygulanır; veritabanı yoksa oluşturulur.
 await DependencyInjection.VeritabaniniHazirlaAsync(app.Services);
@@ -89,6 +120,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// 404, 403, 400 gibi gövdesi boş yanıtlarda tarayıcının boş sayfası yerine Türkçe açıklama sayfası (durum kodu korunur).
+app.UseStatusCodePagesWithReExecute("/Home/Durum", "?kod={0}");
+
+// HTTPS yönlendirmesi yalnızca uygulama bir HTTPS adresi dinliyorsa ya da vekil arkasındaysa anlamlıdır.
 app.UseHttpsRedirection();
 app.UseRouting();
 
@@ -97,6 +132,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+app.MapHealthChecks("/saglik").AllowAnonymous();
 
 app.MapControllerRoute(
     name: "default",

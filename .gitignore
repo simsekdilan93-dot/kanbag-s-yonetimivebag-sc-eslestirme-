@@ -489,3 +489,7 @@ $RECYCLE.BIN/
 # Gizli ayarlar
 appsettings.*.local.json
 .env
+
+# Kan Bağışı: veri koruma anahtarları ve yayın çıktısı (Hafta 14)
+anahtarlar/
+yayin/

@@ -1,3 +1,9 @@
+@{
+    // Menüde açık sayfayı işaretlemek için (görsel "active" + ekran okuyucu için aria-current).
+    var aktifController = ViewContext.RouteData.Values["controller"]?.ToString();
+    string Aktif(string controller) => controller == aktifController ? "active fw-semibold" : "";
+    string? Gecerli(string controller) => controller == aktifController ? "page" : null;
+}
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -10,45 +16,47 @@
     <link rel="stylesheet" href="~/KanBagis.Web.styles.css" asp-append-version="true" />
 </head>
 <body>
+    @* Klavye ve ekran okuyucu kullanıcıları menüyü atlayıp doğrudan içeriğe geçebilir (Tab ile ilk odaklanan öğe). *@
+    <a class="visually-hidden-focusable btn btn-dark position-absolute m-2" style="z-index:1100" href="#icerik">Ana içeriğe geç</a>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">🩸 Kan Bağışı</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index"><span aria-hidden="true">🩸</span> Kan Bağışı</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#anaMenu" aria-controls="anaMenu"
+                        aria-expanded="false" aria-label="Menüyü aç / kapat">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div id="anaMenu" class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Ana sayfa</a>
+                            <a class="nav-link text-dark @Aktif("Home")" aria-current="@Gecerli("Home")" asp-area="" asp-controller="Home" asp-action="Index">Ana sayfa</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="KanGrubu" asp-action="Index">Kan grupları</a>
+                            <a class="nav-link text-dark @Aktif("KanGrubu")" aria-current="@Gecerli("KanGrubu")" asp-controller="KanGrubu" asp-action="Index">Kan grupları</a>
                         </li>
                         @* Menüdeki bağlantılar yalnızca kolaylık içindir; asıl koruma controller'lardaki [Authorize] filtresidir. *@
                         @if (User.IsInRole(Roller.Bagisci))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="BagisciPanel" asp-action="Index">Panelim</a>
+                                <a class="nav-link text-dark @Aktif("BagisciPanel")" aria-current="@Gecerli("BagisciPanel")" asp-controller="BagisciPanel" asp-action="Index">Panelim</a>
                             </li>
                         }
                         @if (User.IsInRole(Roller.Kurum))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="KurumPanel" asp-action="Index">Kurum paneli</a>
+                                <a class="nav-link text-dark @Aktif("KurumPanel")" aria-current="@Gecerli("KurumPanel")" asp-controller="KurumPanel" asp-action="Index">Kurum paneli</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Stok" asp-action="Index">
+                                <a class="nav-link text-dark @Aktif("Stok")" aria-current="@Gecerli("Stok")" asp-controller="Stok" asp-action="Index">
                                     Stok takibi
                                     @await Component.InvokeAsync("StokUyariRozeti")
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Tahmin" asp-action="Index">Stok tahmini</a>
+                                <a class="nav-link text-dark @Aktif("Tahmin")" aria-current="@Gecerli("Tahmin")" asp-controller="Tahmin" asp-action="Index">Stok tahmini</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Istatistik" asp-action="Index">İstatistik</a>
+                                <a class="nav-link text-dark @Aktif("Istatistik")" aria-current="@Gecerli("Istatistik")" asp-controller="Istatistik" asp-action="Index">İstatistik</a>
                             </li>
                         }
                     </ul>
@@ -56,7 +64,7 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <span class="nav-link text-muted">@User.Identity.Name</span>
+                                <span class="nav-link text-body-secondary"><span class="visually-hidden">Oturum: </span>@User.Identity.Name</span>
                             </li>
                             <li class="nav-item">
                                 <form asp-controller="Hesap" asp-action="Cikis" method="post" class="d-inline">
@@ -79,14 +87,20 @@
         </nav>
     </header>
     <div class="container">
-        <main role="main" class="pb-3">
+        <main id="icerik" tabindex="-1" class="pb-3">
             @if (TempData["Mesaj"] is string mesaj)
             {
-                <div class="alert alert-success" role="status">@mesaj</div>
+                <div class="alert alert-success alert-dismissible fade show" role="status">
+                    @mesaj
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                </div>
             }
             @if (TempData["Hata"] is string hata)
             {
-                <div class="alert alert-danger" role="alert">@hata</div>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @hata
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                </div>
             }
             @RenderBody()
         </main>
@@ -95,6 +109,7 @@
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2026 - Kan Bağışı Yönetim Sistemi · v@(SurumBilgisi.Surum)
+            · <a class="link-secondary" href="https://github.com/simsekdilan93-dot/kanbag-s-yonetimivebag-sc-eslestirme-#readme">Kurulum ve kullanım</a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

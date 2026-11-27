@@ -130,11 +130,11 @@ else
                 <form asp-action="DahaFazlaBildir" asp-route-id="@t.Id" method="post">
                     <button type="submit" class="btn btn-outline-danger" disabled="@(Model.BildirilmemisUygunAdaySayisi == 0)">Daha fazla bağışçıya bildir</button>
                 </form>
-                <form asp-action="Kapat" asp-route-id="@t.Id" method="post">
+                <form asp-action="Kapat" asp-route-id="@t.Id" method="post" data-onay="Talep karşılandı olarak kapatılsın mı? Kapanan talep yeniden açılamaz.">
                     <input type="hidden" name="durum" value="@TalepDurumu.Karsilandi" />
                     <button type="submit" class="btn btn-success">Karşılandı</button>
                 </form>
-                <form asp-action="Kapat" asp-route-id="@t.Id" method="post">
+                <form asp-action="Kapat" asp-route-id="@t.Id" method="post" data-onay="Talep iptal edilsin mi? Bu işlem geri alınamaz.">
                     <input type="hidden" name="durum" value="@TalepDurumu.Iptal" />
                     <button type="submit" class="btn btn-outline-secondary">İptal et</button>
                 </form>

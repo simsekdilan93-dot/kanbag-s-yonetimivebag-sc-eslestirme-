@@ -65,4 +65,7 @@ public static class DependencyInjection
 
     public static Task VeritabaniniHazirlaAsync(IServiceProvider services) =>
         VeritabaniKurulum.MigrationlariUygulaAsync(services);
+
+    public static Task<bool> VeritabaniErisilebilirMiAsync(IServiceProvider services, CancellationToken iptal = default) =>
+        VeritabaniKurulum.ErisilebilirMiAsync(services, iptal);
 }
