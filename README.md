@@ -5,7 +5,7 @@ Hastane bir kan grubu için talep açtığında sistem **kan grubu uyumlu, bağ�
 bağışçıları bulur, onlara bildirim gönderir; bağışçı "Gelebilirim" der, bağış kaydedilince stok artar ve talep kapanır.
 
 > Bingöl Üniversitesi · Bilgisayar Programcılığı · Bilgisayar Uygulamaları I — Proje P08 · Dilan Şimşek
-> **Sürüm:** v0.7.0 · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
+> **Sürüm:** v0.7.1 · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
 
 ## İçindekiler
 

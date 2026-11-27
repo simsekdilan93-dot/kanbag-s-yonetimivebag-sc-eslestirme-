@@ -10,6 +10,17 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [0.7.1] — 2026-11-27 · Temiz kurulum bulguları
+
+Depo GitHub'dan boş bir klasöre klonlanıp README adımlarıyla kurulurken görülenler:
+
+### Düzeltildi
+- İlk açılışta her migration için EF uyarısı basılıyordu (SQLite tablo yeniden kurma: `NonTransactionalMigrationOperationWarning`, `TableRebuildPendingWarning`). Gerekçesiyle kapatıldı; dağıtım belgesine "yeni sürümden önce yedek" uyarısı eklendi.
+- Her SQL komutu loglanıyordu (ilk açılışta ~190 satır); varsayılan log düzeyi `Warning`, gerekirse ortam değişkeniyle açılır.
+- Geliştirme ortamında (yalnızca http) her açılışta "HTTPS portu bulunamadı" uyarısı; HTTPS yönlendirmesi yalnızca Production'da.
+
+---
+
 ## [0.7.0] — 2026-11-27 · Dokümantasyon, arayüz iyileştirme ve dağıtım hazırlığı
 
 ### Eklendi

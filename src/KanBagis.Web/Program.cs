@@ -123,8 +123,9 @@ if (!app.Environment.IsDevelopment())
 // 404, 403, 400 gibi gövdesi boş yanıtlarda tarayıcının boş sayfası yerine Türkçe açıklama sayfası (durum kodu korunur).
 app.UseStatusCodePagesWithReExecute("/Home/Durum", "?kod={0}");
 
-// HTTPS yönlendirmesi yalnızca uygulama bir HTTPS adresi dinliyorsa ya da vekil arkasındaysa anlamlıdır.
-app.UseHttpsRedirection();
+// HTTPS yönlendirmesi sunucuda (Production) açık. Geliştirmede README'deki gibi yalnızca http ile çalışılır;
+// orada açık olsaydı her açılışta "HTTPS portu bulunamadı" uyarısı basardı (temiz kurulum denemesinde görüldü).
+if (!app.Environment.IsDevelopment()) app.UseHttpsRedirection();
 app.UseRouting();
 
 // Sıra önemli: önce "kimsin?" (authentication), sonra "yetkin var mı?" (authorization).

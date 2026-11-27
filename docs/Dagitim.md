@@ -106,6 +106,10 @@ denetler; ayrıntı (bağlantı dizesi, hata metni) yanıtta verilmez, yalnızca
 
 ## 5. Yedekleme
 
+**Yeni sürüm kurmadan önce mutlaka yedek alın:** uygulama açılışta bekleyen migration'ları uygular. SQLite'ta bazı tablo
+değişiklikleri tablonun yeniden kurulmasıyla yapılır ve bu adım transaction dışında çalışır; tam o anda süreç kesilirse
+veritabanı yarım kalabilir. (Bu durumun açılıştaki uyarısı bilinçli olarak kapatıldı, bkz. `DataAccess/DependencyInjection.cs`.)
+
 Tüm veri tek dosyada: `kanbagis.db` (+ çalışırken `-wal`, `-shm`). Uygulama çalışırken güvenli yedek:
 
 ```bash
