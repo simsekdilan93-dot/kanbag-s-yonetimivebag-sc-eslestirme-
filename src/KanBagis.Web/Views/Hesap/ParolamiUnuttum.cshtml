@@ -1,0 +1,29 @@
+@model ParolamiUnuttumViewModel
+@{
+    ViewData["Title"] = "Parolamı unuttum";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <h1 class="h3 mb-2">Parolamı unuttum</h1>
+        <p class="text-body-secondary">Hesabınızın e-posta adresini girin. Parolanızı yenilemeniz için 6 haneli bir kod göndereceğiz.</p>
+
+        <form asp-action="ParolamiUnuttum" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Eposta" class="form-label"></label>
+                <input asp-for="Eposta" class="form-control" autocomplete="email" autocapitalize="none" spellcheck="false" inputmode="email" autofocus />
+                <span asp-validation-for="Eposta" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-danger w-100">Kod gönder</button>
+        </form>
+
+        <p class="mt-4 small">
+            <a asp-action="ParolaYenile">Kodum var</a> · <a asp-action="Giris">Girişe dön</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

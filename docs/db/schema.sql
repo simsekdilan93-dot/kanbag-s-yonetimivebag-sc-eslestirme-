@@ -980,3 +980,24 @@ VALUES ('20261126204329_TekAcikTalepKurali', '10.0.13');
 
 COMMIT;
 
+BEGIN TRANSACTION;
+CREATE TABLE "ParolaSifirlamaKodlari" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_ParolaSifirlamaKodlari" PRIMARY KEY AUTOINCREMENT,
+    "KodHash" TEXT NOT NULL,
+    "OlusturmaTarihi" TEXT NOT NULL,
+    "SonKullanmaTarihi" TEXT NOT NULL,
+    "DenemeSayisi" INTEGER NOT NULL,
+    "KapanisTarihi" TEXT NULL,
+    "KullaniciId" INTEGER NOT NULL,
+    CONSTRAINT "CK_ParolaSifirlama_Deneme" CHECK (DenemeSayisi >= 0),
+    CONSTRAINT "CK_ParolaSifirlama_Sure" CHECK (SonKullanmaTarihi > OlusturmaTarihi),
+    CONSTRAINT "FK_ParolaSifirlamaKodlari_Kullanicilar_KullaniciId" FOREIGN KEY ("KullaniciId") REFERENCES "Kullanicilar" ("Id") ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX "IX_ParolaSifirlamaKodlari_KullaniciId" ON "ParolaSifirlamaKodlari" ("KullaniciId") WHERE KapanisTarihi IS NULL;
+
+INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+VALUES ('20261128102810_ParolaSifirlamaKodlari', '10.0.13');
+
+COMMIT;
+

@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using KanBagis.Business;
 using KanBagis.Business.DisServisler;
+using KanBagis.Business.Eposta;
 using KanBagis.Business.Tahmin;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -40,6 +41,14 @@ builder.Services.Configure<BildirimGonderimAyarlari>(builder.Configuration.GetSe
 
 // ---- Yapay zekâ bileşeni (Hafta 10). Anahtar: ANTHROPIC_API_KEY ortam değişkeni (depoya girmez).
 builder.Services.Configure<YapayZekaAyarlari>(builder.Configuration.GetSection(YapayZekaAyarlari.Bolum));
+
+// ---- E-posta (parola yenileme kodu). SMTP parolası: DisServisler__Eposta__Parola ortam değişkeni.
+// SMTP tanımlı değilse e-postalar gönderilmez, uygulama klasöründeki App_Data/epostalar'a .eml olarak yazılır.
+builder.Services.Configure<EpostaAyarlari>(builder.Configuration.GetSection(EpostaAyarlari.Bolum));
+builder.Services.PostConfigure<EpostaAyarlari>(a =>
+{
+    if (!Path.IsPathRooted(a.Klasor)) a.Klasor = Path.Combine(builder.Environment.ContentRootPath, a.Klasor);
+});
 
 // ---- Kimlik doğrulama: çerez (cookie) tabanlı oturum ----
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -108,11 +117,15 @@ await DependencyInjection.VeritabaniniHazirlaAsync(app.Services);
     var ntfy = app.Services.GetRequiredService<IOptions<NtfyAyarlari>>().Value;
     var twilio = app.Services.GetRequiredService<IOptions<TwilioAyarlari>>().Value;
     var yz = app.Services.GetRequiredService<IOptions<YapayZekaAyarlari>>().Value;
+    var ep = app.Services.GetRequiredService<IOptions<EpostaAyarlari>>().Value;
     log.LogInformation("Harici servisler — Yol mesafesi: {Mesafe}, Anlık bildirim (ntfy): {Ntfy}{Token}, SMS (Twilio): {Sms}",
         mesafe.Etkin ? "açık" : "kapalı (kuş uçuşu)",
         ntfy.Etkin ? "açık" : "kapalı",
         string.IsNullOrEmpty(ntfy.Token) ? "" : " (erişim belirteci tanımlı)",
         twilio.Etkin ? "açık" : "kapalı (ortam değişkenleri tanımlı değil)");
+    log.LogInformation("E-posta: {Durum}", ep.SmtpEtkin
+        ? $"SMTP açık ({ep.SmtpSunucu}:{ep.Port})"
+        : $"SMTP tanımlı değil — e-postalar klasöre yazılır: {ep.Klasor}");
     log.LogInformation("Yapay zekâ tahmini: {Durum}",
         yz.Kullanilabilir ? $"açık ({yz.Model})" : "kapalı (ANTHROPIC_API_KEY yok) — istatistiksel tahmin kullanılır");
 }

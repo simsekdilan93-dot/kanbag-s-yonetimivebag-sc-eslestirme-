@@ -1,5 +1,6 @@
 using KanBagis.Business.Bagiscilar;
 using KanBagis.Business.DisServisler;
+using KanBagis.Business.Eposta;
 using KanBagis.Business.Guvenlik;
 using KanBagis.Business.Istatistik;
 using KanBagis.Business.Kimlik;
@@ -27,6 +28,8 @@ public static class DependencyInjection
         services.TryAddSingleton(TimeProvider.System);
         services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher());
         services.AddScoped<IKimlikService, KimlikService>();
+        services.AddScoped<IParolaSifirlamaService, ParolaSifirlamaService>();   // "Parolamı unuttum" (v1.1.0)
+        services.AddSingleton<IEpostaGonderici, SmtpEpostaGonderici>();
         services.AddSingleton<BagisUygunlukKurali>();
         services.AddScoped<IBagisciService, BagisciService>();
         services.AddScoped<IEslestirmeService, EslestirmeService>();

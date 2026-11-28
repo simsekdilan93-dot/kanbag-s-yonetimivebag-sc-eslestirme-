@@ -493,3 +493,5 @@ appsettings.*.local.json
 # Kan Bağışı: veri koruma anahtarları ve yayın çıktısı (Hafta 14)
 anahtarlar/
 yayin/
+# Kan Bağışı: SMTP yokken yazılan e-postalar (parola yenileme kodları içerir)
+App_Data/

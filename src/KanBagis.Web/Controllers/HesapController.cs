@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace KanBagis.Web.Controllers;
 
 [AllowAnonymous]
-public class HesapController(IKimlikService kimlik, ITanimService tanimlar) : Controller
+public class HesapController(IKimlikService kimlik, ITanimService tanimlar, IParolaSifirlamaService parolaSifirlama) : Controller
 {
     // ---------------- GİRİŞ ----------------
 
@@ -54,6 +54,43 @@ public class HesapController(IKimlikService kimlik, ITanimService tanimlar) : Co
             return LocalRedirect(model.ReturnUrl);
 
         return PaneleYonlendir(sonuc.Kullanici!.Rol);
+    }
+
+    // ---------------- PAROLAMI UNUTTUM ----------------
+
+    [HttpGet]
+    public IActionResult ParolamiUnuttum() => View(new ParolamiUnuttumViewModel());
+
+    [HttpPost]
+    public async Task<IActionResult> ParolamiUnuttum(ParolamiUnuttumViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        await parolaSifirlama.KodGonderAsync(model.Eposta);
+
+        // Hesap olsa da olmasa da aynı mesaj: formdan kayıtlı e-postalar öğrenilemez.
+        TempData["Mesaj"] = "Bu e-posta adresiyle kayıtlı bir hesap varsa 6 haneli bir kod gönderildi. Kod 15 dakika geçerlidir; gelmediyse istenmeyen (spam) klasörüne bakın.";
+        return RedirectToAction(nameof(ParolaYenile), new { eposta = model.Eposta.Trim() });
+    }
+
+    [HttpGet]
+    public IActionResult ParolaYenile(string? eposta = null) => View(new ParolaYenileViewModel { Eposta = eposta ?? "" });
+
+    [HttpPost]
+    public async Task<IActionResult> ParolaYenile(ParolaYenileViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var sonuc = await parolaSifirlama.ParolayiYenileAsync(model.Eposta, model.Kod, model.YeniParola);
+        if (sonuc.Durum != SifirlamaDurumu.Basarili)
+        {
+            ModelState.AddModelError(sonuc.Durum == SifirlamaDurumu.ParolaGecersiz ? nameof(model.YeniParola) : string.Empty, sonuc.Mesaj!);
+            model.Kod = string.Empty;
+            return View(model);
+        }
+
+        TempData["Mesaj"] = "Parolanız yenilendi. Yeni parolanızla giriş yapabilirsiniz.";
+        return RedirectToAction(nameof(Giris));
     }
 
     // ---------------- ÇIKIŞ ----------------

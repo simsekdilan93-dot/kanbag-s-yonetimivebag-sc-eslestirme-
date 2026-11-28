@@ -16,6 +16,7 @@ public class KanBagisDbContext(DbContextOptions<KanBagisDbContext> options) : Db
     public DbSet<TahminKaydi> TahminKayitlari => Set<TahminKaydi>();
     public DbSet<StokHareketi> StokHareketleri => Set<StokHareketi>();
     public DbSet<StokUyarisi> StokUyarilari => Set<StokUyarisi>();
+    public DbSet<ParolaSifirlamaKodu> ParolaSifirlamaKodlari => Set<ParolaSifirlamaKodu>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

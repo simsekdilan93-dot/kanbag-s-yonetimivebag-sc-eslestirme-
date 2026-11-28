@@ -5,7 +5,7 @@ Hastane bir kan grubu için talep açtığında sistem **kan grubu uyumlu, bağ�
 bağışçıları bulur, onlara bildirim gönderir; bağışçı "Gelebilirim" der, bağış kaydedilince stok artar ve talep kapanır.
 
 > Bingöl Üniversitesi · Bilgisayar Programcılığı · Bilgisayar Uygulamaları I — Proje P08 · Dilan Şimşek
-> **Sürüm:** v1.0.0 (final) · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
+> **Sürüm:** v1.1.0 · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
 
 ## İçindekiler
 
@@ -23,6 +23,7 @@ bağışçıları bulur, onlara bildirim gönderir; bağışçı "Gelebilirim" d
 
 | Kullanıcı | Yapabilecekleri |
 |---|---|
+| **Herkes (hesap)** | Kayıt, giriş, **parolamı unuttum**: e-postaya gelen 6 haneli kodla parola yenileme |
 | **Bağışçı** | Kayıt (TC algoritması, 81 il), profil; bağışa uygun mu (yaş 18–65, kilo ≥ 50, son bağıştan 90/120 gün) ve ne zaman uygun olacağı; gelen kan çağrılarına "Gelebilirim / Gelemem"; hastaneye yol mesafesi ve tarifi; isteğe bağlı telefona anlık bildirim / SMS |
 | **Kurum (hastane)** | Kan talebi açma (normal / acil) → uygun bağışçılara otomatik bildirim; kabul edenleri görme, bağışı kaydetme; **stok takibi** (giriş/çıkış, kritik eşik uyarısı); **stok tahmini** (istatistik + yapay zekâ); **istatistik panosu** (grafikler, CSV) |
 | **Herkes** | Kan grubu uyumluluk tablosu ("kim kime kan verebilir") |
@@ -93,6 +94,21 @@ yalnızca **ortam değişkeninden** okunur. ASP.NET Core'da `__` (iki alt çizgi
 | `DisServisler__Ntfy__Etkin` / `__Token` | `true` / *(boş)* | Telefona anlık bildirim (ntfy) |
 | `DisServisler__Twilio__AccountSid` / `__AuthToken` / `__Gonderen` | *(boş)* | SMS; üçü de verilmezse SMS kapalı |
 | `ANTHROPIC_API_KEY` | *(boş)* | Yapay zekâ tahmini; yoksa istatistiksel tahmin |
+| `DisServisler__Eposta__SmtpSunucu` / `__Kullanici` / `__Parola` / `__GonderenAdres` | *(boş)* | Parola yenileme kodunun e-postayla gönderilmesi (aşağıya bakın) |
+
+### Parola yenileme e-postası
+
+"Parolamı unuttum" kodu e-postayla gönderilir. **SMTP ayarlanmamışsa** e-posta gönderilmez; bunun yerine
+`src/KanBagis.Web/App_Data/epostalar/` klasörüne `.eml` dosyası olarak yazılır (dosyayı Outlook, Thunderbird ya da Not Defteri ile açıp kodu okuyabilirsiniz).
+Gerçek e-posta için örneğin Gmail ile (PowerShell, yalnızca o oturum):
+
+```powershell
+$env:DisServisler__Eposta__SmtpSunucu = "smtp.gmail.com"
+$env:DisServisler__Eposta__Kullanici = "adresiniz@gmail.com"
+$env:DisServisler__Eposta__Parola = "uygulama-sifresi"      # Google hesabı → Güvenlik → Uygulama şifreleri
+$env:DisServisler__Eposta__GonderenAdres = "adresiniz@gmail.com"
+dotnet run --project src/KanBagis.Web
+```
 
 PowerShell'de yalnızca o oturum için: `$env:ANTHROPIC_API_KEY = "..."`. Bash: `export ANTHROPIC_API_KEY=...`.
 Tüm ayarlar ve sunucu örnekleri: [docs/Dagitim.md](docs/Dagitim.md).

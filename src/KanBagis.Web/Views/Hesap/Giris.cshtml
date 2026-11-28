@@ -17,7 +17,10 @@
                 <span asp-validation-for="Eposta" class="text-danger"></span>
             </div>
             <div class="mb-3">
-                <label asp-for="Parola" class="form-label"></label>
+                <div class="d-flex justify-content-between">
+                    <label asp-for="Parola" class="form-label"></label>
+                    <a asp-action="ParolamiUnuttum" class="small">Parolamı unuttum</a>
+                </div>
                 <input asp-for="Parola" class="form-control" autocomplete="current-password" />
                 <span asp-validation-for="Parola" class="text-danger"></span>
             </div>

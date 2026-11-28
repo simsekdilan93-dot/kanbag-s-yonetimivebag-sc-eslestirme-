@@ -26,6 +26,8 @@ Rol: **Herkes** · **Bağışçı** · **Kurum**. Kimlik (bağışçı/hastane n
 | GET/POST | `/Hesap/KayitBagisci` | Herkes | Bağışçı kaydı (TC algoritması, 18 yaş, il listesi) |
 | GET/POST | `/Hesap/KayitKurum` | Herkes | Kurum (hastane) kaydı |
 | GET | `/Hesap/ErisimEngellendi` | Herkes | Rol yetmediğinde gösterilir |
+| GET/POST | `/Hesap/ParolamiUnuttum` | Herkes | E-posta girilir; hesap varsa 6 haneli kod gönderilir. Hesap olsa da olmasa da **aynı** mesaj; aynı hesaba 60 sn'de bir kod |
+| GET/POST | `/Hesap/ParolaYenile` | Herkes | E-posta + kod + yeni parola. Kod 15 dk geçerli, 5 yanlış denemede iptal, tek kullanımlık; başarılı olunca giriş kilidi açılır |
 
 ## Bağışçı
 

@@ -850,6 +850,46 @@ namespace KanBagis.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("KanBagis.Entities.ParolaSifirlamaKodu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("DenemeSayisi")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("KapanisTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("KodHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("KullaniciId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("OlusturmaTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("SonKullanmaTarihi")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KullaniciId")
+                        .IsUnique()
+                        .HasFilter("KapanisTarihi IS NULL");
+
+                    b.ToTable("ParolaSifirlamaKodlari", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ParolaSifirlama_Deneme", "DenemeSayisi >= 0");
+
+                            t.HasCheckConstraint("CK_ParolaSifirlama_Sure", "SonKullanmaTarihi > OlusturmaTarihi");
+                        });
+                });
+
             modelBuilder.Entity("KanBagis.Entities.StokHareketi", b =>
                 {
                     b.Property<int>("Id")
@@ -1106,6 +1146,17 @@ namespace KanBagis.DataAccess.Migrations
                     b.Navigation("Bagisci");
 
                     b.Navigation("Hastane");
+                });
+
+            modelBuilder.Entity("KanBagis.Entities.ParolaSifirlamaKodu", b =>
+                {
+                    b.HasOne("KanBagis.Entities.Kullanici", "Kullanici")
+                        .WithMany()
+                        .HasForeignKey("KullaniciId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Kullanici");
                 });
 
             modelBuilder.Entity("KanBagis.Entities.StokHareketi", b =>

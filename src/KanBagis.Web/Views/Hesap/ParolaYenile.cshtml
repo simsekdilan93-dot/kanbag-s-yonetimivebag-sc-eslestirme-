@@ -1,0 +1,45 @@
+@model ParolaYenileViewModel
+@{
+    ViewData["Title"] = "Parola yenile";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <h1 class="h3 mb-2">Parola yenile</h1>
+        <p class="text-body-secondary">E-postanıza gelen 6 haneli kodu ve yeni parolanızı girin.</p>
+
+        <form asp-action="ParolaYenile" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <div class="mb-3">
+                <label asp-for="Eposta" class="form-label"></label>
+                <input asp-for="Eposta" class="form-control" autocomplete="username" autocapitalize="none" spellcheck="false" inputmode="email" />
+                <span asp-validation-for="Eposta" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Kod" class="form-label"></label>
+                <input asp-for="Kod" class="form-control fs-5" autocomplete="one-time-code" inputmode="numeric" maxlength="7" style="letter-spacing:.3em" autofocus />
+                <span asp-validation-for="Kod" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="YeniParola" class="form-label"></label>
+                <input asp-for="YeniParola" class="form-control" autocomplete="new-password" aria-describedby="parolaKurali" />
+                <div id="parolaKurali" class="form-text">En az 8 karakter, en az bir harf ve bir rakam.</div>
+                <span asp-validation-for="YeniParola" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="YeniParolaTekrar" class="form-label"></label>
+                <input asp-for="YeniParolaTekrar" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="YeniParolaTekrar" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-danger w-100">Parolayı yenile</button>
+        </form>
+
+        <p class="mt-4 small">
+            Kod gelmedi mi? <a asp-action="ParolamiUnuttum">Yeni kod iste</a> · <a asp-action="Giris">Girişe dön</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

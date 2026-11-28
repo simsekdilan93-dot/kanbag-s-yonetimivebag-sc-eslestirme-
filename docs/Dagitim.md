@@ -38,6 +38,9 @@ IIS yapılandırması, bulut panelinin "Application settings" bölümü) girilir
 | `DisServisler__Gonderim__MaksimumDeneme`, `__IlkBeklemeMilisaniye`, `__ZamanAsimiSaniye` | Hayır | Hayır | Telefon bildirimi yeniden deneme ayarları |
 | `DisServisler__YapayZeka__Etkin`, `__Model`, `__MaksimumToken`, `__ZamanAsimiSaniye` | Hayır | Hayır | Tahmin modeli ayarları |
 | `ANTHROPIC_API_KEY` (ya da `DisServisler__YapayZeka__ApiAnahtari`) | **Evet** | Hayır | Yoksa istatistiksel tahmin |
+| `DisServisler__Eposta__SmtpSunucu`, `__Port`, `__Ssl`, `__Kullanici`, `__GonderenAdres`, `__GonderenAd` | Hayır | Parola yenileme için | SMTP sunucusu (ör. Gmail: `smtp.gmail.com`, 587, Ssl `true`). Sunucu ve gönderen adres yoksa e-postalar gönderilmez, `__Klasor` klasörüne `.eml` yazılır |
+| `DisServisler__Eposta__Parola` | **Evet** | SMTP için | Gmail'de normal parola değil, **uygulama şifresi** (Google hesabı → Güvenlik → 2 adımlı doğrulama → Uygulama şifreleri) |
+| `DisServisler__Eposta__Klasor` | Hayır | Hayır | SMTP yokken e-postaların yazılacağı klasör (varsayılan `App_Data/epostalar`, depoya girmez) |
 
 Uygulama açılışta hangi servislerin açık olduğunu loglar; **anahtarların kendisini asla loglamaz**:
 

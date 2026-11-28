@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IBildirimRepository, BildirimRepository>();
         services.AddScoped<ITahminRepository, TahminRepository>();
         services.AddScoped<IIstatistikRepository, IstatistikRepository>();
+        services.AddScoped<IParolaSifirlamaRepository, ParolaSifirlamaRepository>();
 
         return services;
     }

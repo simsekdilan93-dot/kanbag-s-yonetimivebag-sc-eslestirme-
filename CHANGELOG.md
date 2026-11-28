@@ -10,6 +10,17 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [1.1.0] — 2026-11-28 · Parolamı unuttum
+
+### Eklendi
+- **Parolamı unuttum:** giriş sayfasındaki bağlantıyla e-posta girilir, 6 haneli kod e-postayla gelir, kod ve yeni parola girilerek parola yenilenir (`/Hesap/ParolamiUnuttum`, `/Hesap/ParolaYenile`).
+- Güvenlik: kod kriptografik rastgele ve yalnızca hash'i saklanır; 15 dakika geçerli, 5 yanlış denemede iptal, tek kullanımlık; yeni kod eskisini geçersiz kılar; aynı hesaba 60 saniyede bir kod; kayıtlı olmayan e-postaya da aynı yanıt; parola yenilenince giriş kilidi açılır.
+- **E-posta gönderimi (SMTP):** `DisServisler__Eposta__*` ortam değişkenleri (parola yalnızca ortam değişkeninde). SMTP tanımlı değilse e-posta `App_Data/epostalar` klasörüne `.eml` olarak yazılır (klasör depoya girmez).
+- `ParolaSifirlamaKodlari` tablosu (kullanıcı başına tek açık kod); 21 yeni test (toplam 358).
+- Belgeler: README (Gmail örneği), Dağıtım, Uç noktalar, Güvenlik notu, `.env.example`.
+
+---
+
 ## [1.0.0] — 2026-11-28 · Final sürüm
 
 İlk kararlı sürüm. Tüm modüller entegre: kimlik ve yetki, bağışçı ve kan grubu, talep ve eşleştirme, harici servisler

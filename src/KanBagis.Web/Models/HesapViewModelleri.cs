@@ -22,6 +22,36 @@ public class GirisViewModel
     public string? ReturnUrl { get; set; }
 }
 
+public class ParolamiUnuttumViewModel
+{
+    [Required(ErrorMessage = "E-posta zorunludur.")]
+    [Display(Name = "E-posta")]
+    public string Eposta { get; set; } = string.Empty;
+}
+
+public class ParolaYenileViewModel
+{
+    [Required(ErrorMessage = "E-posta zorunludur.")]
+    [Display(Name = "E-posta")]
+    public string Eposta { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "E-postadaki 6 haneli kodu girin.")]
+    [RegularExpression(@"^\s*\d{3}\s*\d{3}\s*$", ErrorMessage = "Kod 6 rakamdan oluşur.")]
+    [Display(Name = "Doğrulama kodu")]
+    public string Kod { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Yeni parola zorunludur.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Yeni parola")]
+    public string YeniParola { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Parolayı tekrar girin.")]
+    [DataType(DataType.Password)]
+    [Compare(nameof(YeniParola), ErrorMessage = "Parolalar eşleşmiyor.")]
+    [Display(Name = "Yeni parola (tekrar)")]
+    public string YeniParolaTekrar { get; set; } = string.Empty;
+}
+
 public abstract class KayitViewModelTemeli
 {
     [Required(ErrorMessage = "E-posta zorunludur.")]

@@ -193,6 +193,75 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
         Assert.Contains("Metrik;Değer", await yanit.Content.ReadAsStringAsync());
     }
 
+    // ---------------- v1.1.0: Parolamı unuttum ----------------
+
+    [Fact]
+    public async Task Giris_sayfasinda_parolami_unuttum_baglantisi_var()
+    {
+        var html = await YeniIstemci().GetStringAsync("/Hesap/Giris");
+        Assert.Contains("href=\"/Hesap/ParolamiUnuttum\"", html);
+    }
+
+    [Fact]
+    public async Task Parolami_unuttum_uctan_uca_eposta_kodu_ile_parola_yenilenir()
+    {
+        var eposta = await KurumOlusturAsync();
+        var istemci = YeniIstemci();
+
+        // 1) E-posta girilir → kod e-postayla gelir, kod sayfasına yönlendirilir.
+        var istek = await istemci.PostAsync("/Hesap/ParolamiUnuttum", Form(await TokenAlAsync(istemci, "/Hesap/ParolamiUnuttum"), ("Eposta", eposta)));
+        Assert.Equal(HttpStatusCode.Redirect, istek.StatusCode);
+        Assert.StartsWith("/Hesap/ParolaYenile", istek.Headers.Location!.ToString());
+        var kod = _uygulama.Eposta.SonKod(eposta);
+        Assert.Matches(@"^\d{6}$", kod);
+
+        // 2) Kod + yeni parola → girişe yönlendirilir.
+        var yenile = await istemci.PostAsync("/Hesap/ParolaYenile", Form(await TokenAlAsync(istemci, "/Hesap/ParolaYenile"),
+            ("Eposta", eposta), ("Kod", kod!), ("YeniParola", "YeniParola9"), ("YeniParolaTekrar", "YeniParola9")));
+        Assert.Equal(HttpStatusCode.Redirect, yenile.StatusCode);
+        Assert.Equal("/Hesap/Giris", yenile.Headers.Location!.ToString());
+
+        // 3) Yeni parolayla giriş yapılır, eskisiyle yapılamaz.
+        Assert.Equal(HttpStatusCode.Redirect, (await GirisFormuGonderAsync(YeniIstemci(), eposta, "YeniParola9")).StatusCode);
+        Assert.Contains("E-posta veya parola hatalı", await (await GirisFormuGonderAsync(YeniIstemci(), eposta, Parola)).Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Kayitli_olmayan_eposta_icin_de_ayni_yanit_verilir()
+    {
+        var istemci = YeniIstemci();
+        var once = _uygulama.Eposta.Gonderilenler.Count;
+
+        var yanit = await istemci.PostAsync("/Hesap/ParolamiUnuttum", Form(await TokenAlAsync(istemci, "/Hesap/ParolamiUnuttum"), ("Eposta", "kimse@yok.com")));
+
+        Assert.Equal(HttpStatusCode.Redirect, yanit.StatusCode);
+        Assert.StartsWith("/Hesap/ParolaYenile", yanit.Headers.Location!.ToString());
+        Assert.Equal(once, _uygulama.Eposta.Gonderilenler.Count);
+    }
+
+    [Fact]
+    public async Task Yanlis_kod_formu_hatayla_yeniden_gosterir()
+    {
+        var eposta = await KurumOlusturAsync();
+        var istemci = YeniIstemci();
+        await istemci.PostAsync("/Hesap/ParolamiUnuttum", Form(await TokenAlAsync(istemci, "/Hesap/ParolamiUnuttum"), ("Eposta", eposta)));
+        var dogru = _uygulama.Eposta.SonKod(eposta)!;
+        var yanlis = dogru == "000000" ? "111111" : "000000";
+
+        var yanit = await istemci.PostAsync("/Hesap/ParolaYenile", Form(await TokenAlAsync(istemci, "/Hesap/ParolaYenile"),
+            ("Eposta", eposta), ("Kod", yanlis), ("YeniParola", "YeniParola9"), ("YeniParolaTekrar", "YeniParola9")));
+
+        Assert.Equal(HttpStatusCode.OK, yanit.StatusCode);
+        Assert.Contains("Kod hatalı ya da süresi dolmuş", await yanit.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Parola_yenileme_csrf_belirteci_olmadan_reddedilir()
+    {
+        var yanit = await YeniIstemci().PostAsync("/Hesap/ParolamiUnuttum", new FormUrlEncodedContent(new Dictionary<string, string> { ["Eposta"] = "x@ornek.com" }));
+        Assert.Equal(HttpStatusCode.BadRequest, yanit.StatusCode);
+    }
+
     // ---------------- Hafta 14: dağıtım ve kullanılabilirlik ----------------
 
     [Fact]
@@ -776,6 +845,7 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
     public sealed class TestUygulamasi : WebApplicationFactory<Program>
     {
         private readonly string _dbYolu = Path.Combine(Path.GetTempPath(), $"kanbagis-test-{Guid.NewGuid():N}.db");
+        public SahteEposta Eposta { get; } = new();
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -785,7 +855,10 @@ public class YetkilendirmeTestleri : IClassFixture<YetkilendirmeTestleri.TestUyg
             builder.UseSetting("DisServisler:Ntfy:Etkin", "false");
             builder.UseSetting("DisServisler:YapayZeka:Etkin", "false");   // ANTHROPIC_API_KEY tanımlı olsa bile API çağrılmaz
             builder.ConfigureTestServices(services =>
-                services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher(iterasyon: 1_000)));
+            {
+                services.AddSingleton<IParolaHasher>(new Pbkdf2ParolaHasher(iterasyon: 1_000));
+                services.AddSingleton<KanBagis.Business.Eposta.IEpostaGonderici>(Eposta);   // gerçek e-posta gönderilmez
+            });
         }
 
         protected override void Dispose(bool disposing)

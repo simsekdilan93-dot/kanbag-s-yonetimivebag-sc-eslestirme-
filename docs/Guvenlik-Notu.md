@@ -94,3 +94,18 @@ Saklanan biçim: `PBKDF2-SHA256$600000$<tuz>$<hash>`. İterasyon sayısı kayıt
   açılırsa istemci kendini HTTPS'ten gelmiş gibi gösterebilirdi.
 - **Hata sayfaları** ve **sağlık kontrolü** ayrıntı (yığın izi, bağlantı dizesi) vermez; ayrıntı yalnızca loga yazılır.
 - Sunucuda `ASPNETCORE_ENVIRONMENT=Production` zorunlu: `Development` ayrıntılı hata sayfası gösterir.
+
+## 9. Parolamı unuttum (v1.1.0)
+
+| Tehdit | Önlem |
+|---|---|
+| Veritabanı sızarsa kodların okunması | Kod düz metin saklanmaz; parola gibi PBKDF2 ile tuzlu hash'i saklanır |
+| Kodun tahmin edilmesi | Kod kriptografik rastgele (`RandomNumberGenerator`), 6 hane; **5 yanlış denemede iptal** (tahmin şansı 1/200.000); 15 dakika geçerli |
+| Kodun ikinci kez kullanılması | Kullanılınca kapanır; yeni kod istenince eskisi geçersiz; kullanıcı başına tek açık kod (filtreli benzersiz indeks) |
+| Hangi e-postaların kayıtlı olduğunun öğrenilmesi | Hesap olsa da olmasa da aynı mesaj ve benzer yanıt süresi (hash her durumda hesaplanır) |
+| E-posta bombardımanı | Aynı hesaba 60 saniyede bir kod |
+| Kodun loglara sızması | E-posta içeriği loglanmaz; SMTP yokken yazılan `.eml` dosyalarının klasörü (`App_Data/`) `.gitignore` ile depo dışında |
+| SMTP parolası | Yalnızca ortam değişkeninde (`DisServisler__Eposta__Parola`) |
+
+Parola yenilenince hesabın giriş kilidi açılır (kodu e-postadan alan kişi hesabın sahibi olduğunu kanıtlamıştır).
+
