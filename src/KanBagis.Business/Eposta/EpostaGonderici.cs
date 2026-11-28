@@ -82,7 +82,10 @@ public sealed class SmtpEpostaGonderici(IOptions<EpostaAyarlari> ayarlar, ILogge
         catch (Exception e) when (e is SmtpException or InvalidOperationException or IOException or FormatException or UnauthorizedAccessException)
         {
             // Alıcı adresi ve hata türü loglanır; e-postanın içeriği (kod) loglanmaz.
-            log.LogError(e, "E-posta gönderilemedi ({Tur}).", e.GetType().Name);
+            var ic = e; while (ic.InnerException is not null) ic = ic.InnerException;
+            // Gmail yanlış kimlik bilgisinde 535 yanıtı verip bağlantıyı kapatır; SmtpClient bunu "bağlantı kapandı" diye bildirir.
+            log.LogError(e, "E-posta gönderilemedi ({Tur}: {Neden}). Bağlantı kapandıysa en olası neden SMTP kullanıcı adı/şifresinin " +
+                "kabul edilmemesidir (Gmail'de normal şifre değil, 16 harflik uygulama şifresi gerekir).", e.GetType().Name, ic.Message);
             return false;
         }
     }

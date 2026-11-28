@@ -20,8 +20,15 @@ $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($gizli)
 try { $sifre = ([Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)) -replace '\s', '' }
 finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
 
-if ($adres -notmatch '^[^@\s]+@[^@\s]+\.[^@\s]+$' -or $sifre.Length -lt 8) {
-    Write-Host "Adres ya da şifre geçersiz görünüyor. Çıkılıyor." -ForegroundColor Yellow
+if ($adres -notmatch '^[^@\s]+@[^@\s]+\.[^@\s]+$') {
+    Write-Host "E-posta adresi geçersiz görünüyor. Bu satıra YALNIZCA adresi yazın (ör. adiniz@gmail.com)." -ForegroundColor Yellow
+    exit 1
+}
+# Google'ın uygulama şifresi her zaman 16 harftir (boşluklar hariç). Farklı uzunluk = büyük olasılıkla normal Gmail şifresi.
+if ($sifre -notmatch '^[a-zA-Z]{16}$') {
+    Write-Host "Girilen şifre $($sifre.Length) karakter. Uygulama şifresi 16 harftir (ör. abcd efgh ijkl mnop)." -ForegroundColor Yellow
+    Write-Host "Normal Gmail şifreniz burada ÇALIŞMAZ. Uygulama şifresi almak için: https://myaccount.google.com/apppasswords"
+    Write-Host "(Önce Güvenlik > 2 Adımlı Doğrulama açık olmalı.)"
     exit 1
 }
 
@@ -40,9 +47,17 @@ try {
     Write-Host "Deneme e-postası gönderildi. Gelen kutunuzu kontrol edin." -ForegroundColor Green
 }
 catch {
-    $neden = if ($_.Exception.InnerException) { $_.Exception.InnerException.Message } else { $_.Exception.Message }
-    Write-Host "E-posta gönderilemedi: $neden" -ForegroundColor Yellow
-    Write-Host "Kontrol edin: 2 Adımlı Doğrulama açık mı, şifre 'uygulama şifresi' mi, adres doğru mu?"
+    # En içteki hata asıl nedendir ("Failure sending mail" yalnızca bir sarmalayıcı).
+    $e = $_.Exception; while ($e.InnerException) { $e = $e.InnerException }
+    Write-Host "E-posta gönderilemedi: $($e.Message)" -ForegroundColor Yellow
+    if ($e.Message -match 'closed|kapat|5\.7\.8|not accepted|Authentication') {
+        # Gmail yanlış kullanıcı adı/şifrede "535 5.7.8 Username and Password not accepted" yanıtı verip bağlantıyı kapatır.
+        Write-Host "Gmail kullanıcı adı veya şifreyi kabul etmedi. En sık neden: uygulama şifresi yerine normal Gmail şifresi girilmesi" -ForegroundColor Yellow
+        Write-Host "ya da uygulama şifresinin yanlış kopyalanması. Yeni bir uygulama şifresi oluşturup tekrar deneyin:"
+        Write-Host "https://myaccount.google.com/apppasswords"
+    } else {
+        Write-Host "Kontrol edin: internet bağlantısı, adres doğru mu, 2 Adımlı Doğrulama açık mı?"
+    }
     exit 1
 }
 
