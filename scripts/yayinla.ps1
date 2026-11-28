@@ -1,4 +1,4 @@
-# Kan Bağışı — yayın paketi oluşturur (Windows PowerShell).
+﻿# Kan Bağışı — yayın paketi oluşturur (Windows PowerShell).
 # Kullanım:  powershell -ExecutionPolicy Bypass -File scripts\yayinla.ps1 [-Hedef yayin]
 param([string]$Hedef = "yayin")
 $ErrorActionPreference = "Stop"

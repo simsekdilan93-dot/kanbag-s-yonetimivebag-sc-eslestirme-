@@ -100,7 +100,9 @@ yalnızca **ortam değişkeninden** okunur. ASP.NET Core'da `__` (iki alt çizgi
 
 "Parolamı unuttum" kodu e-postayla gönderilir. **SMTP ayarlanmamışsa** e-posta gönderilmez; bunun yerine
 `src/KanBagis.Web/App_Data/epostalar/` klasörüne `.eml` dosyası olarak yazılır (dosyayı Outlook, Thunderbird ya da Not Defteri ile açıp kodu okuyabilirsiniz).
-Gerçek e-posta için örneğin Gmail ile (PowerShell, yalnızca o oturum):
+**En kolayı:** proje klasöründe `powershell -ExecutionPolicy Bypass -File scripts\eposta-ile-calistir.ps1` —
+Gmail adresini ve uygulama şifresini gizli girişle sorar, kendinize bir deneme e-postası gönderip bilgileri doğrular, sonra siteyi
+e-postalı başlatır (şifre diske yazılmaz). Elle ayarlamak isterseniz (PowerShell, yalnızca o oturum):
 
 ```powershell
 $env:DisServisler__Eposta__SmtpSunucu = "smtp.gmail.com"
