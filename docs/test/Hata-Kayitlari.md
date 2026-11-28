@@ -7,6 +7,7 @@ Her düzeltilen hatanın bir testi vardır; hata geri gelirse test kırmızıya 
 
 | No | Hata | Önem | Durum | Regresyon testi |
 |---|---|---|---|---|
+| H15-01 | Kritik stok uyarısı mesajında "KRİTİK" yerine "KRITIK" (`ToUpperInvariant`); final uçtan uca provada bulundu | Düşük | Düzeltildi | `H15_01_*` |
 | H13-01 | "Bugün" UTC'ye göre hesaplanıyordu: her gece 00:00–03:00 arası yaş ve 90/120 gün kuralı bir gün kayık | Yüksek | Düzeltildi | `H13_01_*` (4 test) |
 | H13-02 | 29 Şubat doğumluya "28 Şubat'ta uygun olacaksınız" deniyordu, o gün hâlâ uygun değil | Orta | Düzeltildi | `H13_02_*` (2 test) |
 | H13-03 | "İlker@…" (Türkçe büyük İ) ile giriş yapılamıyor, aynı adres ikinci kez kaydedilebiliyor | Orta | Düzeltildi | `H13_03_*` (4 test) |
@@ -33,6 +34,15 @@ Her düzeltilen hatanın bir testi vardır; hata geri gelirse test kırmızıya 
 | A-04 | OpenStreetMap yol tarifi bağlantısı dış servis hız sınırına (429) takılabiliyor | Bağlantı açılmayabilir | Dış servis; uygulamanın kendi mesafe hesabı etkilenmez |
 
 ---
+
+## H15-01: final provada bulunan yazım hatası
+
+- **Nasıl bulundu:** Hafta 15'te savunma demosunun 16 adımı tarayıcıda otomatik oynatıldı; "kritik uyarı açıldı" adımı kaldı.
+  Ekrandaki mesaj "⚠ KRITIK seviye uyarısı açıldı" idi.
+- **Kök neden:** `"Kritik".ToUpperInvariant()` — kültürden bağımsız büyük harf "i"yi "I" yapar; Türkçede "İ" olmalı.
+- **Düzeltme:** `ToUpper(new CultureInfo("tr-TR"))`. Kodda başka kültürsüz büyük/küçük harf dönüşümü arandı.
+- **Hata olmadığı görülen şüphe:** bağışçı panelindeki `"İptal".ToLower()` da şüpheli görüldü; İngilizce kültürle test edildi ve
+  .NET'in "İ"yi tek karakter "i"ye çevirdiği, yani **hata olmadığı** görüldü. Test eklenmedi, kod değiştirilmedi.
 
 ## H13-04 ve H13-05: adım adım ayıklama
 

@@ -151,12 +151,15 @@ public sealed class StokService(IKanStokRepository stoklar, TimeProvider zaman) 
         var metin = $"{grup}: {(h.Tur == HareketTuru.Giris ? "+" : "−")}{h.Miktar} ünite ({NedenAdi(h.Neden)}). Stok {h.OncekiStok} → {h.SonrakiStok}.";
         return s.Uyari switch
         {
-            UyariDegisimi.Acildi => metin + $" ⚠ {DurumAdi(s.YeniDurum).ToUpperInvariant()} seviye uyarısı açıldı.",
+            // tr-TR: "Kritik" → "KRİTİK". ToUpperInvariant "KRITIK" yazıyordu (H15-01).
+            UyariDegisimi.Acildi => metin + $" ⚠ {DurumAdi(s.YeniDurum).ToUpper(Turkce)} seviye uyarısı açıldı.",
             UyariDegisimi.SeviyeDegisti => metin + $" ⚠ Uyarı seviyesi: {DurumAdi(s.YeniDurum)}.",
             UyariDegisimi.Kapandi => metin + " Stok normale döndü, uyarı kapandı.",
             _ => metin,
         };
     }
+
+    private static readonly System.Globalization.CultureInfo Turkce = new("tr-TR");
 
     public static string NedenAdi(HareketNedeni n) => n switch
     {

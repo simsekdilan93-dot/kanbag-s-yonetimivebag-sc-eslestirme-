@@ -203,6 +203,26 @@ public class HataRegresyonTestleri
         Assert.Contains("otomatik iptal", talepler[1].Aciklama);
     }
 
+    // ---------------- H15-01: Türkçe büyük harf (final uçtan uca provada bulundu) ----------------
+
+    [Fact]
+    public async Task H15_01_Kritik_uyari_mesaji_Turkce_buyuk_harfle_KRITIK_degil_KRİTİK()
+    {
+        using var db = new TestVeritabani();
+        var kullanici = new Kullanici { Eposta = "h15@ornek.com", ParolaHash = "x", Rol = KullaniciRolu.Kurum, HastaneId = 1, OlusturmaTarihi = DateTime.UtcNow };
+        db.Context.Kullanicilar.Add(kullanici);
+        db.Context.SaveChanges();
+        var servis = new KanBagis.Business.Stok.StokService(new KanStokRepository(db.Context),
+            new AyarlanabilirZaman(new DateTimeOffset(2026, 11, 28, 12, 0, 0, TimeSpan.Zero)));
+
+        // A Rh+ 24, kritik eşik 8 → 16 ünite çıkış kritik uyarı açar.
+        var cevap = await servis.HareketGirAsync(new KanBagis.Business.Stok.StokHareketIstegi(1, HareketNedeni.TransferCikis, 16, "test", KritikOnayi: true),
+            new KanBagis.Business.Stok.IslemYapan(kullanici.Id, 1));
+
+        Assert.Contains("KRİTİK seviye uyarısı açıldı", cevap.Mesaj);
+        Assert.DoesNotContain("KRITIK", cevap.Mesaj);
+    }
+
     private static KanBagisDbContext Baglam(string baglanti) =>
         new(new DbContextOptionsBuilder<KanBagisDbContext>().UseSqlite(baglanti).Options);
 

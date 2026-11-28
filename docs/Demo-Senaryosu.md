@@ -1,4 +1,4 @@
-# Demo Senaryosu (v0.7.0)
+# Demo Senaryosu (v1.0.0)
 
 **Süre:** yaklaşık 8 dakika (çekirdek akış 5 dk + ileri modüller 3 dk) · **Amaç:** Kurulumdan başlayarak tüm modüllerin birlikte çalıştığını göstermek.
 Vize sürümündeki (v0.1.0) ilk 11 adım aynen geçerlidir; 12–17. adımlar sonraki haftaların modülleridir.
@@ -28,7 +28,7 @@ dotnet run --project src/KanBagis.Web    # http://localhost:5284  (README → Ku
 | 8 | Kurum | Talep detayını yenile | Kabul eden bağışçının **adı ve telefonu** görünüyor (yalnızca kabul edenler, açık rıza). |
 | 9 | Kurum | **Bağış alındı** | "Bağış kaydedildi ve stoğa eklendi… talep karşılandı" → talep **Karşılandı**. Kurum panelinde **A Rh+ stoğu 1 arttı** (Hafta 8 entegrasyonu). |
 | 10 | Bağışçı | Paneli yenile | Son bağış **bugün**, "Şu an bağış yapamazsınız" ve **uygun olunacak tarih** (kadın 120 / erkek 90 gün). Modül A, Modül B'nin kaydettiği bağışı görüyor. |
-| 11 | — | GitHub → **Tags** (depo sayfasında dal seçicinin yanındaki "Tags") | Her haftanın etiketlenmiş sürümü (`v0.1.0` … `v0.7.0`), `CHANGELOG.md` sürüm notları. |
+| 11 | — | GitHub → **Tags** (depo sayfasında dal seçicinin yanındaki "Tags") | Her haftanın etiketlenmiş sürümü (`v0.1.0` … `v1.0.0`), `CHANGELOG.md` sürüm notları. |
 | 12 | Kurum | **Stok takibi** → A Rh+ için 16 ünite **Transfer (giden)** | Stok kritik eşiğe inecekse **onay** istenir; onaydan sonra **KRİTİK uyarı** açılır, menüde uyarı sayısı artar (Hafta 11). |
 | 13 | Kurum | 0 Rh- için 10 ünite **Transfer (gelen)** | Stok eşiğin üstüne çıkınca uyarı **kendiliğinden kapanır**; **Hareket geçmişi**nde önceki → sonraki stok ve 9. adımdaki bağış da görünür. |
 | 14 | Kurum | **Stok tahmini** → (gerekirse sentetik geçmiş ekle) → **Tahmini güncelle** | Gelecek hafta tahmini ve risk; yapay zekâ çıktısı doğrulanıyor, anahtar yoksa istatistiksel tahmin; **AI kullanım günlüğü**nde istem (Hafta 10). |

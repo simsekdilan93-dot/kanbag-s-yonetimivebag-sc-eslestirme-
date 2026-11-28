@@ -10,6 +10,23 @@ Her sürüm git'te aynı adla etiketlenir (`git tag v0.1.0`).
 
 ---
 
+## [1.0.0] — 2026-11-28 · Final sürüm
+
+İlk kararlı sürüm. Tüm modüller entegre: kimlik ve yetki, bağışçı ve kan grubu, talep ve eşleştirme, harici servisler
+(yol mesafesi, anlık bildirim, SMS), yapay zekâ destekli tahmin, stok takip ve uyarı, istatistik panosu.
+
+### Doğrulama
+- 16 adımlı uçtan uca savunma senaryosu (kayıt → talep → eşleştirme → kabul → bağış → stok → uyarı → tahmin → istatistik → CSV → 404/sağlık) tarayıcıda otomatik oynatıldı: 16/16.
+- 337 test (birim, entegrasyon, uçtan uca), satır kapsamı %92.
+
+### Düzeltildi
+- **H15-01:** Kritik stok uyarısı mesajında "KRİTİK" yerine "KRITIK" yazıyordu (`ToUpperInvariant`); Türkçe kültürle büyük harf. Final provada bulundu, regresyon testi eklendi.
+
+### Eklendi
+- `docs/Final-Savunma.md`: sistemin uçtan uca anlatımı, mimari kararların artı/eksileri, yapay zekâ kullanımı, ölçeklendirme, yeniden yapsam, 8 dakikalık demo planı, olası jüri soruları.
+
+---
+
 ## [0.7.3] — 2026-11-27 · Yama
 
 ### Düzeltildi

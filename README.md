@@ -5,7 +5,7 @@ Hastane bir kan grubu için talep açtığında sistem **kan grubu uyumlu, bağ�
 bağışçıları bulur, onlara bildirim gönderir; bağışçı "Gelebilirim" der, bağış kaydedilince stok artar ve talep kapanır.
 
 > Bingöl Üniversitesi · Bilgisayar Programcılığı · Bilgisayar Uygulamaları I — Proje P08 · Dilan Şimşek
-> **Sürüm:** v0.7.3 · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
+> **Sürüm:** v1.0.0 (final) · [Sürüm notları](CHANGELOG.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md)
 
 ## İçindekiler
 
@@ -151,6 +151,7 @@ Bağımlılık tek yönlü: **Web → Business → DataAccess → (SQLite)**; En
 | [Dağıtım](docs/Dagitim.md) | Ortam değişkenleri, yayın, sunucu, sorunlar |
 | [Test raporu](docs/test/Test-Raporu.md) · [Hata kayıtları](docs/test/Hata-Kayitlari.md) | Test piramidi, kapsam, düzeltilen hatalar |
 | [Demo senaryosu](docs/Demo-Senaryosu.md) · [Haftalık ilerleme](docs/Haftalik-Ilerleme.md) | Sunum akışı, haftalar |
+| [Final teknik özet ve savunma](docs/Final-Savunma.md) | Uçtan uca anlatım, mimari kararlar, yapay zekâ, ölçeklendirme, jüri soruları |
 
 ## Güvenlik ve kişisel veriler
 
